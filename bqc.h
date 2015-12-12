@@ -372,6 +372,12 @@ enum { ENOERR,EPERM,ENOENT,ESRCH,EINTR,EIO,ENXIO,E2BIG,ENOEXEC,EBADF,
 	EKEYREVOKED,EKEYREJECTED,EOWNERDEAD,ENOTRECOVERABLE,ERFKILL,EHWPOISON,ELAST
 };
 
+#if 1 //helper macros
+#define CHAR_BIT __CHAR_BIT__ //__CHAR_BIT__ is passed by the compiler
+#define ROL(x,y) (x<<y)|(x>>((sizeof(x)*CHAR_BIT) -y))
+#define ROR(x,y) (x>>y)|(x<<((sizeof(x)*CHAR_BIT) -y))
+#endif
+
 #ifndef NO_GLOBAL_VARS
 long errno; //technically should be int, but syscalls return long - avoids casts
 char **environ;
@@ -1544,33 +1550,30 @@ static noreturn void exit(int a1){
 //not documented
 	#if HAS(__builtin_ia32_rolqi)
 		#define rolb __builtin_ia32_rolqi
-		#define __rolb __builtin_ia32_rolqi
+	#else
+		static inline u8 rolb(const u8 x,const u8 y){return ROL(x,y);}
 	#endif
 
 //not documented
 	#if HAS(__builtin_ia32_rolhi)
 		#define rolw __builtin_ia32_rolhi
-		#define __rolw __builtin_ia32_rolhi
+	#else
+		static inline u16 rolw(const u16 x,const u8 y){return ROL(x,y);}
 	#endif
 
 //not documented
 	#if HAS(__builtin_ia32_rorqi)
 		#define rorb __builtin_ia32_rorqi
-		#define __rorb __builtin_ia32_rorqi
+	#else
+		static inline u8 rorb(const u8 x,const u8 y){return ROR(x,y);}
 	#endif
 
 //not documented
 	#if HAS(__builtin_ia32_rorhi)
 		#define rorw __builtin_ia32_rorhi
-		#define __rorw __builtin_ia32_rorhi
+	#else
+		static inline u16 rorw(const u16 x,const u8 y){return ROR(x,y);}
 	#endif
-
-
-static __inline unsigned int __rold(unsigned int i,int j){return (i>>(32-j))|(i<<j);}
-static __inline unsigned int __rord(unsigned int i,int j){return (i<<(32-j))|(i>>j);}
-
-static __inline unsigned long long __rolq(unsigned long long i,long long j){return (i>>(64-j))|(i<<j);}
-static __inline unsigned long long __rorq(unsigned long long i,long long j){return (i<<(64-j))|(i>>j);}
 
 //probably goes outside of arch
 //#define _lrotl(a,b)		__rolq((a), (b)) ... __rold((a), (b))
@@ -10819,6 +10822,27 @@ wrapped to handle errors directly or for automatic error handling via callbacks
 #error only big and little endian currently supported
 #else
 #error only big and little endian currently supported
+#endif
+
+#if 1 //commonly used helpers not in libc
+
+static inline u8 rolw(u8 x,u8 y){return ROL(x,y);}
+static inline u8 rorw(u8 x,u8 y){return ROR(x,y);}
+static inline u16 rolw(u16 x,u8 y){return ROL(x,y);}
+static inline u16 rorw(u16 x,u8 y){return ROR(x,y);}
+static inline u32 rold(u32 x,u8 y){return ROL(x,y);}
+static inline u32 rord(u32 x,u8 y){return ROR(x,y);}
+static inline u64 rolq(u64 i,u8 j){return ROL(x,y);}
+static inline u64 rorq(u64 i,u8 j){return ROR(x,y);}
+#define __rolb rolb
+#define __rorb rorb
+#define __rolw rolw
+#define __rorw rorw
+#define __rold rold
+#define __rord rord
+#define __rolq rolq
+#define __rorq rorq
+
 #endif
 
 #if 1 //strings section
