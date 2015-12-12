@@ -19,15 +19,15 @@
 //set up architecture dependent stuff
 //	#define ARCH_DATA	"sp", "syscall","callnum","ret","arg1","arg2","arg3","arg4","arg5","arg6","arg7","memory",...
 #ifdef __x86_64__
-	#define ARCH_DATA	"rsp","syscall", "rax","rax","rdi","rsi","rdx","r10","r8", "r9", "0", "rcx","r11","memory","cc"
+	#define ARCH_DATA	"rsp","syscall", "rax","rax","rdi","rsi","rdx","r10","r8", "r9", "0", "rcx","r11","memory"
 #elif defined (__i386__)
-	#define ARCH_DATA	"esp","int $128","eax","eax","ebx","ecx","edx","esi","edi","ebp", "memory"
+	#define ARCH_DATA	"esp","int $128","eax","eax","ebx","ecx","edx","esi","edi","ebp","0", "memory"
 #elif defined (__aarch64__)
 	#define ARCH_DATA	"x31","svc 0",   "x8", "x0", "x0", "x1", "x2", "x3", "x4", "x5", "x6", "x7", "x9", "x10", "x11", "x12", "x13","x14", "x15", "x16", "x17", "x18", "memory"
 #elif defined (__arm__)
-	#define ARCH_DATA	"r13","swi 0x0", "r7", "r0", "r0", "r1", "r2", "r3", "r4", "r5", "r6", /* more clobbers?*/ "memory"
+	#define ARCH_DATA	"r13","swi 0x0", "r7", "r0", "r0", "r1", "r2", "r3", "r4", "r5", "r6", "memory"
 #elif defined (__alpha__) //* also returns error on $19 */
-	//#define ARCH_DATA	"sp","syscall",  "v0", "v0", "a0", "a1", "a2", "a3", "a4", "a5","a6","memory"
+	//#define ARCH_DATA	"sp","syscall",  "v0", "v0", "a0", "a1", "a2", "a3", "a4", "a5", "a6", "memory"
 	/* older way */
 	//#define ARCH_DATA	"sp","callsys #  %0 %1 %2 %3 %4 %5 %6 %7 %8", "$0", "$0","$16","$17","$18","$19","$20","$21", "$22","$23","$24","$25","$27","$28","$1","$2","$3","$4","$5","$6","$7","$8","memory"
 #elif defined (__alpha__) //stack pointer called "sp", but located @ "r28"
@@ -53,10 +53,10 @@
 #elif defined(__H8300SX__) || defined(__H8300S__) || defined(__H8300H__) || defined(__H8300__) //sp is "r7"
 	//#define ARCH_DATA "sp",
 #elif defined(__hppa__) || defined(__hppa)
-	//#define ARCH_DATA	"%usp","ble 0x100(%sr2,%r0)","%r20","%r28","%r26","%r25","%r24","%r23","%r22","%r21","r1","r2","r20","r29","r31","memory"
-	//#define ARCH_DATA "r30","ble 0x100(%sr2, %r0)","r20","r26","r25","r24","r23","r22","r21","memory","r1","r2","r20","r29","r31"
+	//#define ARCH_DATA	"%usp","ble 0x100(%sr2,%r0)","%r20","%r28","%r26","%r25","%r24","%r23","%r22","%r21","0", ,"r1","r2","r20","r29","r31","memory"
+	//#define ARCH_DATA "r30","ble 0x100(%sr2, %r0)","r20","r26","r25","r24","r23","r22","r21","0","0", memory","r1","r2","r20","r29","r31"
 #elif defined(__ia64__)	/* has 2 returns */	//sp is "r12"
-	//#define ARCH_DATA	"sp","break 0x100000","r15","r10/r8","out0","out1","out2","out3","out4","out5",0,"memory"
+	//#define ARCH_DATA	"sp","break 0x100000","r15","r10/r8","out0","out1","out2","out3","out4","out5","0", "memory"
 #elif defined(__iq2000__)
 	//#define ARCH_DATA "%29",
 #elif defined(__lm32__)
@@ -66,14 +66,14 @@
 #elif defined(__M32R__) || defined(__m32r__) //sp is "r15"
 	//#define ARCH_DATA "sp",
 #elif defined(__m68k__)
-	//#define ARCH_DATA	"sp","trap  #0","d0","d0","d1","d2","d3","d4","d5","a0","d0","d1","a0","memory"
-	//#define ARCH_DATA	"%sp","trap &0","%d0","%d0","%d1","%d2","%d3","%d4","%d5","%a0","%d0","%d1","%a0","memory"
+	//#define ARCH_DATA	"sp","trap  #0","d0","d0","d1","d2","d3","d4","d5", "0", "a0","d0","d1","a0","memory"
+	//#define ARCH_DATA	"%sp","trap &0","%d0","%d0","%d1","%d2","%d3","%d4","%d5","0",%a0","%d0","%d1","%a0","memory"
 #elif defined(__mcore__) || defined(__MCORE__) //sp is "r0"
 	//#define ARCH_DATA "sp",
 #elif defined(__MEP__)  || defined(__MeP__)  || defined(mep) //$sp is "$15" also aliased as "sp"
 	//#define ARCH_DATA "$sp",
 #elif defined(__microblaze__)
-	//#define ARCH_DATA	"r1","brki r14, 0x8","r12","r3","r5","r6","r7","r8","r9","r10",0,"memory","r4"
+	//#define ARCH_DATA	"r1","brki r14, 0x8","r12","r3","r5","r6","r7","r8","r9","r10","0","memory","r4"
 #elif defined(__mips64__)
 	//#define ARCH_DATA	"$sp","syscall","$v0","$v0","$a0","$a1","$a2","$a3","$a4","$a5","$a6","$a7","$at","$t0","$t1","$t2","$t3","$t4","$t5","$t6","$t7","$t8","$t9","$hi","$lo","memory"
 #elif defined(__mips__) || defined (_mips)
@@ -93,27 +93,27 @@
 #elif defined(__nvptx__) //sp is regnum which would correspond to "%hr1" which is list as %outargs
 	//#define ARCH_DATA  "%outargs",	
 #elif defined(__or1k__) //clobbers unused would-be arg registers
-	//#define ARCH_DATA	???,"l.sys 1","r11","r11","r3","r4","r5","r6","r7","r8","memory","r12","r13","r15","r17","r19","r21","r23","r25","r27","r29","r31"
+	//#define ARCH_DATA	???,"l.sys 1","r11","r11","r3","r4","r5","r6","r7","r8","0", memory","r12","r13","r15","r17","r19","r21","r23","r25","r27","r29","r31"
 #elif defined(pdp11) //sp is r6
 	//#define ARCH_DATA  "sp",
 #elif defined(__powerpc64__)
-	//#define ARCH_DATA	???,sc,r0,r0,r3,r4,r5,r6,,r7,r8,0,"memory","cr0","ctr","r8","r9","r10","r11","r12"
+	//#define ARCH_DATA	???,"sc","r0","r0","r3","r4","r5","r6","r7","r8","0","memory","cr0","ctr","r8","r9","r10","r11","r12"
 #elif defined(__powerpc__)
-	//#define ARCH_DATA	???,sc,r0,r0,r3,r4,r5,r6,,r7,r8,0,"memory","cr0","ctr","r8","r9","r10","r11","r12"
+	//#define ARCH_DATA	???,"sc","r0","r0","r3","r4","r5","r6","r7","r8","0","memory","cr0","ctr","r8","r9","r10","r11","r12"
 #elif defined(__RL78__) //sp would be r32, but not aliased
 	//#define ARCH_DATA "sp",
 #elif defined(__RX__) //sp ~= r0
 	//#define ARCH_DATA "sp",
 #elif defined(__s390x__)
-	//#define ARCH_DATA  "r15","svc 0","r1","r2","r2","r3","r4","r5","r6","r7",0,"memory"
+	//#define ARCH_DATA  "r15","svc 0","r1","r2","r2","r3","r4","r5","r6","r7","0","memory"
 #elif defined (__s390__)
 	//#define ARCH_DATA	"r15","    svc %b1\n"
 #elif defined __sh__
-	//#define ARCH_DATA	"r15","trapa #","r3", "r0", "r4", "r5", "r6", "r7", "r0", "r1", 0, "memory"
+	//#define ARCH_DATA	"r15","trapa #","r3", "r0", "r4", "r5", "r6", "r7", "r0", "r1", "0", "memory"
 #elif defined(__sparc64__) || defined(__sparcv9) || defined(__sparcv9__) || defined(__sparc_v9__) || defined(__arch64__) //sp is %o6
-	//#define ARCH_DATA	"%sp","t 0x6d", "%g1","%o0","%o0","%o1","%o2","%o3","%o4","%o5", 0, "memory"
+	//#define ARCH_DATA	"%sp","t 0x6d", "%g1","%o0","%o0","%o1","%o2","%o3","%o4","%o5", "0", "memory"
 #elif defined (__sparc__) || defined (__sparclet__) || defined (__sparclite__) || defined (__sparclite8x__) || defined (__supersparc__) || defined(__sparc_v8__) //sp is %o6
- 	//#define ARCH_DATA	"%sp","t 0x10", "%g1","%o0","%o0","%o1","%o2","%o3","%o4","%o5", 0, "memory"
+ 	//#define ARCH_DATA	"%sp","t 0x10", "%g1","%o0","%o0","%o1","%o2","%o3","%o4","%o5", "0", "memory"
 #elif defined (__spu__)
 	//#define ARCH_DATA "$sp",
 #elif defined (xstormy16) //sp is r15
@@ -135,12 +135,15 @@
 
 //Crap should have been: SP,PRE6-1,SYSCALL,POST1-6,RET2,RET,NUM,ARG1-ARG6,CLOBBERS
 //ex. x86
-// 	#define ARCH	"esp","","","","","","","int $128","","","","","","", 
+// 	#define ARCH	"esp","","","","","","","int $128","","","","","","", \
 //	0,NA,"eax","eax","ebx","ecx","edx","esi","edi","ebp",  "memory"
 //ex. arch
-//  #define ARCH	"sp","","","","","","","callsys #  %0 %1 %2"," %3"," %4"," %5"," %6"," %7"," %8",
+//  #define ARCH	"sp","","","","","","","callsys #  %0 %1 %2"," %3"," %4"," %5"," %6"," %7"," %8", \
 //  1,"$19","$0", "$0","$16","$17","$18","$19","$20","$21",  "$22","$23","$24","$25","$27","$28","$1","$2","$3","$4","$5","$6","$7","$8","memory"
 // The syscall pre and post strings get concatenated together as needed
+// This would be for architectures that change the syscall string according to # of args
+// arch uses: (((((callsys # %0) %1) %2) %3) %4) %5)
+// while other architectures may need additional prefix instructions (mov, etc...)
 
 #endif
 
@@ -185,6 +188,8 @@
 #define	ARG7 _H(ARG7,ARCH_DATA)
 #define	CLOB_(sp,sysc,cnum,ret,a1,a2,a3,a4,a5,a6,a7,...) __VA_ARGS__
 #define	CLOB _H(CLOB,ARCH_DATA)
+//TODO add option to clobber unused arguments of some platforms
+//ex. CLOB3_(sp,sysc,cnum,ret,a1,a2,a3,...) __VA_ARGS__
 
 #define SETREGISTER(var,reg,val) register long var __asm__(reg) = val
 #define SETRETURN_REGISTER register long ret __asm__(RETURN_REGISTER)
@@ -222,7 +227,6 @@
 #define syscall6(n,a,b,c,d,e,f) _syscall6(n,(long)(a),(long)(b),(long)(c),(long)(d),(long)(e),(long)(f))
 #define syscall7(n,a,b,c,d,e,f,g) _syscall7(n,(long)(a),(long)(b),(long)(c),(long)(d),(long)(e),(long)(f),(long)(g))
 #endif 
-
 
 
 #if 1 //typedefs use the kernel's builtin types for our typedefs
@@ -280,8 +284,6 @@ struct sockaddr_storage {
  sa_family_t ss_family;
  char __data[128 - sizeof(unsigned short)];
 } __attribute__ ((aligned((__alignof__ (struct sockaddr *)))));
-
-
 
 typedef union address {
     struct sockaddr { sa_family_t sa_family; char sa_data[14]; } sa;
@@ -376,6 +378,11 @@ char **environ;
 #endif
 
 #if 1 //syscall inline functions
+//TODO change these to macros for architectures that require immediate values as
+// arguments to the syscall.  This will require changese to how each syscall is
+// defined as well ... this will also allow usage of proper function prototypes
+//#define <name>(...) syscall{NARGS}(type, name, type, arg, ...)
+
 static inline long _syscall0(long cnum){
 	SETREGISTERS0;
 	__asm__ __volatile__(SYSCALL:RET:REGS0:CLOB);
@@ -411,6 +418,7 @@ static inline long _syscall6(long cnum,long a1,long a2,long a3,long a4,long a5,l
 	__asm__ __volatile__(SYSCALL:RET:REGS6:CLOB);
 	return ret;
 }
+//is this ever actually used???
 static inline long _syscall7(long cnum,long a1,long a2,long a3,long a4,long a5,long a6,long a7){
 	SETREGISTERS7;
 	__asm__ __volatile__(SYSCALL:RET:REGS7:CLOB);
@@ -8420,6 +8428,13 @@ typedef float __v2sf __attribute__ ((__vector_size__ (8)));
 
 
 #if 1 //setup syscall wrappers for each syscall
+/**
+TODO document each syscall above its implementation
+These are really raw syscall wrappers, they don't even return -1 and set errno
+It is currently up to the user to handle a return of -errno.  This makes it
+more streamlined for thread usage (via clone) since the inline syscalls can be
+wrapped to handle errors directly or for automatic error handling via callbacks
+**/
 /** accept() - accept a socket connection
  * int accept(int sockfd,struct sockaddr *addr,socklen_t *addrlen);
  **/
@@ -10968,15 +10983,30 @@ static inline char *strstr(const char *haystack, const char *needle){
 
 
 
+/** HACK alert:
+ * linux-elf passes all arguments to _start() on the stack regardless of
+ * the system's actuall calling convention, so you can't just set up
+ * _start(argc, argv, ...) because you will just get some random data
+ * in a register.  I tried using explicit named register variables, to
+ * access the stack pointer directly; however optimizations sometimes
+ * move the stack pointer in the prolog and break it ... which is also
+ * why we can't just set up a variable at the very beginning of the 
+ * function and refer to its address.  Which leads me to this hack.
+ * Since large structs are always passed on the stack, we can use a
+ * fake large struct as the sole parameter.  The compiler doesn't
+ * mess with this.
+ **/
 struct stack {long arr[8];};
-
 int main(); //if we change this to inline mymain(), we can inline main
-
 void noreturn __attribute__ ((visibility ("protected")))
 _start(struct stack stack){
 	long argc = *(((long*)(&stack))-1);
-	char **argv = (char**)&stack, **envp = argv+argc;
-	(void)exit(main(argc,argv,envp) );
+	char **argv = (char**)&stack;
+#ifdef NO_GLOBAL_VARS
+	char **environ;
+#endif
+	environ = argv+argc;
+	(void)exit(main(argc,argv,environ) );
 	__builtin_unreachable(); //or for(;;); to shut up gcc
 }
 
