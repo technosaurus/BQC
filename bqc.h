@@ -10824,6 +10824,26 @@ wrapped to handle errors directly or for automatic error handling via callbacks
 #error only big and little endian currently supported
 #endif
 
+#if 1 //ctype.h
+
+static inline int isalnum(int c){return ((unsigned)c-'0' < 10)|(((unsigned)c|32)-'a' < 26);}
+static inline int isalpha(int c){return (((unsigned)c|32)-'a' < 26);}
+static inline int isascii(int c){return (unsigned)c<128;}
+static inline int isblank(int c){return (c==' ')|(c=='\t');}
+static inline int iscntrl(int c){return ((unsigned)c < 0x20) | (c == 0x7f);}
+static inline int isdigit(int c){return (unsigned)c-'0' < 10;}
+static inline int isgraph(int c){return (unsigned)c-0x21 < 0x5e;}
+static inline int islower(int c){return (unsigned)c-'a' < 26;}
+static inline int isprint(int c){return (unsigned)c-0x20 < 0x5f;}
+static inline int ispunct(int c){return (isgraph(c) & !isalnum(c););}
+static inline int isspace(int c){return ((unsigned)c-'\t' < 5)|(c == ' ');}
+static inline int isupper(int c){return (unsigned)c-'A' < 26;}
+static inline int isxdigit(int c){return ((unsigned)c-'0' < 10) | (((unsigned)c|32)-'a' < 6);}
+static inline int tolower(int c){return c | ((isupper(c))<<5);}
+static inline int toupper(int c){return c & 0x5f & (-((unsigned)c-'a'<26));}
+
+#endif
+
 #if 1 //commonly used helpers not in libc
 
 static inline u8 rolw(u8 x,u8 y){return ROL(x,y);}
