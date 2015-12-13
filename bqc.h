@@ -291,6 +291,13 @@ typedef union address {
     struct sockaddr_in6 sa_in6;
 //    struct sockaddr_storage sa_stor;
 } address_t;
+
+struct timespec{
+    time_t tv_sec;
+    long tv_nsec;
+};
+
+
 #endif
 
 enum{ //this defines _ALL_ common enums in one spot
@@ -306,6 +313,30 @@ enum{ //this defines _ALL_ common enums in one spot
 	AF_X25       = 9,
 	AF_INET6     = 10,
 	AF_MAX       = 12,
+
+	CSIGNAL = 0x000000ff,
+	CLONE_VM = 0x00000100,
+	CLONE_FS = 0x00000200,
+	CLONE_FILES = 0x00000400,
+	CLONE_SIGHAND = 0x00000800,
+	CLONE_PTRACE = 0x00002000,
+	CLONE_VFORK = 0x00004000,
+	CLONE_PARENT = 0x00008000,
+	CLONE_THREAD = 0x00010000,
+	CLONE_NEWNS = 0x00020000,
+	CLONE_SYSVSEM = 0x00040000,
+	CLONE_SETTLS = 0x00080000,
+	CLONE_PARENT_SETTID = 0x00100000,
+	CLONE_CHILD_CLEARTID = 0x00200000,
+	CLONE_DETACHED = 0x00400000,
+	CLONE_UNTRACED = 0x00800000,
+	CLONE_CHILD_SETTID = 0x01000000,
+	CLONE_NEWUTS = 0x04000000,
+	CLONE_NEWIPC = 0x08000000,
+	CLONE_NEWUSER = 0x10000000,
+	CLONE_NEWPID = 0x20000000,
+	CLONE_NEWNET = 0x40000000,
+	CLONE_IO = 0x80000000,
 
 	IPPROTO_IP = 0,
 	IPPROTO_ICMP = 1,
@@ -333,6 +364,10 @@ enum{ //this defines _ALL_ common enums in one spot
 	IPPROTO_RAW = 255,
 	IPPROTO_MAX =256,
 
+	P_ALL = 0,
+	P_PID = 1,
+	P_PGID = 2,
+
 	PF_UNSPEC    = AF_UNSPEC,
 	PF_UNIX      = AF_UNIX,
 	PF_INET      = AF_INET,
@@ -351,7 +386,19 @@ enum{ //this defines _ALL_ common enums in one spot
 	SOCK_RAW       = 3,
 	SOCK_RDM       = 4,
 	SOCK_SEQPACKET = 5,
+
+	WNOHANG = 0x00000001,
+	WUNTRACED = 0x00000002,
+	WSTOPPED = WUNTRACED,
+	WEXITED = 0x00000004,
+	WCONTINUED = 0x00000008,
+	WNOWAIT = 0x01000000,
 	
+	__WNOTHREAD = 0x20000000,
+	__WALL = 0x40000000,
+	__WCLONE = 0x80000000,
+
+
 };
 
 enum { ENOERR,EPERM,ENOENT,ESRCH,EINTR,EIO,ENXIO,E2BIG,ENOEXEC,EBADF,
