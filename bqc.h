@@ -1,7 +1,7 @@
 #ifndef BQC_H
 #define BQC_H
 
-#if 1 // this is where to add/fix architecture ports
+#if 1 //architecture ports
 
 #include <linux/unistd.h>
 
@@ -20,6 +20,10 @@
 //	#define ARCH_DATA	"sp", "syscall","callnum","ret","arg1","arg2","arg3","arg4","arg5","arg6","arg7","memory",...
 #ifdef __x86_64__
 	#define ARCH_DATA	"rsp","syscall", "rax","rax","rdi","rsi","rdx","r10","r8", "r9", "0", "rcx","r11","memory"
+//TODO x32 as subset
+	enum{
+		
+	};
 #elif defined (__i386__)
 	#define ARCH_DATA	"esp","int $128","eax","eax","ebx","ecx","edx","esi","edi","ebp","0", "memory"
 #elif defined (__aarch64__)
@@ -147,9 +151,790 @@
 
 #endif
 
+enum{ //enums
+	AF_UNSPEC    = 0,
+	AF_UNIX	     = 1,
+	AF_INET	     = 2,
+	AF_AX25	     = 3,
+	AF_IPX       = 4,
+	AF_APPLETALK = 5,
+	AF_NETROM    = 6,
+	AF_BRIDGE    = 7,
+	AF_AAL5      = 8,
+	AF_X25       = 9,
+	AF_INET6     = 10,
+	AF_MAX       = 12,
+	
+	__ARCH_SI_PREAMBLE_SIZE = (3 * sizeof(int)),
+
+	CSIGNAL = 0x000000ff,
+	CLONE_VM = 0x00000100,
+	CLONE_FS = 0x00000200,
+	CLONE_FILES = 0x00000400,
+	CLONE_SIGHAND = 0x00000800,
+	CLONE_PTRACE = 0x00002000,
+	CLONE_VFORK = 0x00004000,
+	CLONE_PARENT = 0x00008000,
+	CLONE_THREAD = 0x00010000,
+	CLONE_NEWNS = 0x00020000,
+	CLONE_SYSVSEM = 0x00040000,
+	CLONE_SETTLS = 0x00080000,
+	CLONE_PARENT_SETTID = 0x00100000,
+	CLONE_CHILD_CLEARTID = 0x00200000,
+	CLONE_DETACHED = 0x00400000,
+	CLONE_UNTRACED = 0x00800000,
+	CLONE_CHILD_SETTID = 0x01000000,
+	CLONE_NEWUTS = 0x04000000,
+	CLONE_NEWIPC = 0x08000000,
+	CLONE_NEWUSER = 0x10000000,
+	CLONE_NEWPID = 0x20000000,
+	CLONE_NEWNET = 0x40000000,
+	CLONE_IO = 0x80000000,
+
+	COMMAND_LINE_SIZE = 512,
+
+	EPERM =  1,
+	ENOENT =  2,
+	ESRCH =  3,
+	EINTR =  4,
+	EIO =  5,
+	ENXIO =  6,
+	E2BIG =  7,
+	ENOEXEC =  8,
+	EBADF =  9,
+	ECHILD = 10,
+	EAGAIN = 11,
+	ENOMEM = 12,
+	EACCES = 13,
+	EFAULT = 14,
+	ENOTBLK = 15,
+	EBUSY = 16,
+	EEXIST = 17,
+	EXDEV = 18,
+	ENODEV = 19,
+	ENOTDIR = 20,
+	EISDIR = 21,
+	EINVAL = 22,
+	ENFILE = 23,
+	EMFILE = 24,
+	ENOTTY = 25,
+	ETXTBSY = 26,
+	EFBIG = 27,
+	ENOSPC = 28,
+	ESPIPE = 29,
+	EROFS = 30,
+	EMLINK = 31,
+	EPIPE = 32,
+	EDOM = 33,
+	ERANGE = 34,
+	EDEADLK = 35,
+	ENAMETOOLONG = 36,
+	ENOLCK = 37,
+	ENOSYS = 38,
+	ENOTEMPTY = 39,
+	ELOOP = 40,
+	EWOULDBLOCK = EAGAIN,
+	ENOMSG = 42,
+	EIDRM = 43,
+	ECHRNG = 44,
+	EL2NSYNC = 45,
+	EL3HLT = 46,
+	EL3RST = 47,
+	ELNRNG = 48,
+	EUNATCH = 49,
+	ENOCSI = 50,
+	EL2HLT = 51,
+	EBADE = 52,
+	EBADR = 53,
+	EXFULL = 54,
+	ENOANO = 55,
+	EBADRQC = 56,
+	EBADSLT = 57,
+
+
+	F_DUPFD = 0,
+	F_GETFD = 1,
+	F_SETFD = 2,
+	F_GETFL = 3,
+	F_SETFL = 4,
+	F_GETLK = 5,
+	F_SETLK = 6,
+	F_SETLKW = 7,
+	F_SETOWN = 8,
+	F_GETOWN = 9,
+	F_SETSIG = 10,
+	F_GETSIG = 11,
+	F_GETLK64 = 12,
+	F_SETLK64 = 13,
+	F_SETLKW64 = 14,
+	F_SETOWN_EX = 15,
+	F_GETOWN_EX = 16,
+	F_GETOWNER_UIDS = 17,
+
+	F_OWNER_TID = 0,
+	F_OWNER_PID = 1,
+	F_OWNER_PGRP = 2,
+	FD_CLOEXEC = 1,
+	F_RDLCK = 0,
+	F_WRLCK = 1,
+	F_UNLCK = 2,
+	F_EXLCK = 4,
+	F_SHLCK = 8,
+	F_LINUX_SPECIFIC_BASE = 1024,
+
+	_IOC_NRBITS = 8,
+	_IOC_TYPEBITS = 8,
+	_IOC_SIZEBITS = 14,
+	_IOC_DIRBITS = 2,
+	
+	_IOC_NRMASK = ((1 << _IOC_NRBITS)-1),
+	_IOC_TYPEMASK = ((1 << _IOC_TYPEBITS)-1),
+	_IOC_SIZEMASK = ((1 << _IOC_SIZEBITS)-1),
+	_IOC_DIRMASK = ((1 << _IOC_DIRBITS)-1),
+
+	_IOC_NRSHIFT = 0,
+	_IOC_TYPESHIFT = (_IOC_NRSHIFT+_IOC_NRBITS),
+	_IOC_SIZESHIFT = (_IOC_TYPESHIFT+_IOC_TYPEBITS),
+	_IOC_DIRSHIFT = (_IOC_SIZESHIFT+_IOC_SIZEBITS),
+	_IOC_NONE = 0U,
+	_IOC_WRITE = 1U,
+	_IOC_READ = 2U,
+
+
+	IPPROTO_IP = 0,
+	IPPROTO_ICMP = 1,
+	IPPROTO_IGMP = 2,
+	IPPROTO_IPIP = 4,
+	IPPROTO_TCP = 6,
+	IPPROTO_EGP = 8,
+	IPPROTO_PUP = 12,
+	IPPROTO_UDP = 17,
+	IPPROTO_IDP = 22,
+	IPPROTO_TP = 29,
+	IPPROTO_DCCP = 33,
+	IPPROTO_IPV6 = 41,
+	IPPROTO_RSVP = 46,
+	IPPROTO_GRE = 47,
+	IPPROTO_ESP = 50,
+	IPPROTO_AH = 51,
+	IPPROTO_MTP = 92,
+	IPPROTO_BEETPH = 94,
+	IPPROTO_ENCAP = 98,
+	IPPROTO_PIM = 103,
+	IPPROTO_COMP = 108,
+	IPPROTO_SCTP = 132,
+	IPPROTO_UDPLITE = 136,
+	IPPROTO_RAW = 255,
+	IPPROTO_MAX =256,
+
+	//LOAD flags
+	LOADED_HIGH	= 1,
+	QUIET_FLAG = 32,
+	KEEP_SEGMENTS = 64,
+	CAN_USE_HEAP = 128,
+
+	LOCK_SH = 1,
+	LOCK_EX = 2,
+	LOCK_NB = 4,
+	LOCK_UN = 8,
+	LOCK_MAND = 32,
+	LOCK_READ = 64,
+	LOCK_WRITE = 128,
+	LOCK_RW = 192,
+
+	//mman
+	PROT_READ = 0x1,
+	PROT_WRITE = 0x2,
+	PROT_EXEC = 0x4,
+	PROT_SEM = 0x8,
+	PROT_NONE = 0x0,
+	PROT_GROWSDOWN = 0x01000000,
+	PROT_GROWSUP = 0x02000000,
+	MAP_SHARED = 0x01,
+	MAP_PRIVATE = 0x02,
+	MAP_TYPE = 0x0f,
+	MAP_FIXED = 0x10,
+	MAP_ANONYMOUS = 0x20,
+#ifdef CONFIG_MMAP_ALLOW_UNINITIALIZED
+	MAP_UNINITIALIZED 0x4000000,
+#else
+	MAP_UNINITIALIZED 0x0,
+#endif
+	MS_ASYNC = 1,
+	MS_INVALIDATE = 2,
+	MS_SYNC = 4,
+	MADV_NORMAL = 0,
+	MADV_RANDOM = 1,
+	MADV_SEQUENTIAL = 2,
+	MADV_WILLNEED = 3,
+	MADV_DONTNEED = 4,
+	MADV_REMOVE = 9,
+	MADV_DONTFORK = 10,
+	MADV_DOFORK = 11,
+	MADV_HWPOISON = 100,
+	MADV_SOFT_OFFLINE 101,
+	MADV_MERGEABLE   12,
+	MADV_UNMERGEABLE 13,
+	MADV_HUGEPAGE = 14,
+	MADV_NOHUGEPAGE = 15,
+	MADV_DONTDUMP   16,
+	MADV_DODUMP = 17,
+	MAP_FILE = 0,
+	MAP_HUGE_SHIFT = 26,
+	MAP_HUGE_MASK = 0x3f,
+
+	//termios
+	NCC = 8,
+
+	O_RDONLY    = 00000000,
+	O_WRONLY    = 00000001,
+	O_RDWR      = 00000002,
+	O_ACCMODE   = 00000003,
+	O_CREAT     = 00000100,
+	O_EXCL      = 00000200,
+	O_NOCTTY    = 00000400,
+	O_TRUNC     = 00001000,
+	O_APPEND    = 00002000,
+	O_NONBLOCK  = 00004000,
+	O_NDELAY    = 00004000,
+	O_DSYNC     = 00010000,
+	FASYNC      = 00020000,
+	O_DIRECT    = 00040000,
+	O_LARGEFILE = 00100000,
+	O_DIRECTORY = 00200000,
+	O_NOFOLLOW  = 00400000,
+	O_NOATIME   = 01000000,
+	O_CLOEXEC   = 02000000,
+	__O_SYNC    = 04000000,
+	O_PATH      = 010000000,
+	__O_TMPFILE = 020000000,
+	O_TMPFILE   = 020200000,
+	O_TMPFILE_MASK =020200100,
+
+	//param
+	HZ = 100,
+	EXEC_PAGESIZE = 4096,
+	NOGROUP = (-1),
+	MAXHOSTNAMELEN = 64,
+
+	P_ALL = 0,
+	P_PID = 1,
+	P_PGID = 2,
+
+	PAGE_SIZE = 4096,
+
+	PF_UNSPEC    = AF_UNSPEC,
+	PF_UNIX      = AF_UNIX,
+	PF_INET      = AF_INET,
+	PF_AX25      = AF_AX25,
+	PF_IPX       = AF_IPX,
+	PF_APPLETALK = AF_APPLETALK,
+	PF_NETROM    = AF_NETROM,
+	PF_BRIDGE    = AF_BRIDGE,
+	PF_AAL5      = AF_AAL5,
+	PF_X25       = AF_X25,
+	PF_INET6     = AF_INET6,
+	PF_MAX       = AF_MAX,
+
+	//poll
+	POLLIN = 0x0001,
+	POLLPRI = 0x0002,
+	POLLOUT = 0x0004,
+	POLLERR = 0x0008,
+	POLLHUP = 0x0010,
+	POLLNVAL = 0x0020,
+	POLLRDNORM = 0x0040,
+	POLLRDBAND = 0x0080,
+	POLLWRNORM = 0x0100,
+	POLLWRBAND = 0x0200,
+	POLLMSG = 0x0400,
+	POLLREMOVE = 0x1000,
+	POLLRDHUP = 0x2000,
+	POLLFREE = 0x4000,
+	POLL_BUSY_LOOP = 0x8000,
+
+	RAMDISK_IMAGE_START_MASK = 0x07FF,
+	RAMDISK_PROMPT_FLAG = 0x8000,
+	RAMDISK_LOAD_FLAG = 0x4000,
+
+	//rlimit
+	RLIMIT_CPU = 0,
+	RLIMIT_FSIZE = 1,
+	RLIMIT_DATA = 2,
+	RLIMIT_STACK = 3,
+	RLIMIT_CORE = 4,
+	RLIMIT_RSS = 5,
+	RLIMIT_NPROC = 6,
+	RLIMIT_NOFILE = 7,
+	RLIMIT_MEMLOCK = 8,
+	RLIMIT_AS = 9,
+	RLIMIT_LOCKS = 10,
+	RLIMIT_SIGPENDING = 11,
+	RLIMIT_MSGQUEUE = 12,
+	RLIMIT_NICE = 13,
+	RLIMIT_RTPRIO = 14,
+	RLIMIT_RTTIME = 15,
+	RLIM_NLIMITS = 16,
+	RLIM_INFINITY = (~0UL),
+	_STK_LIM_MAX = RLIM_INFINITY,
+
+	SETUP_NONE = 0,
+	SETUP_E820_EXT = 1,
+	SETUP_DTB = 2,
+	SETUP_PCI = 3,
+
+	SHMLBA = PAGE_SIZE,
+
+	SI_MAX_SIZE = 128,
+	SI_PAD_SIZE = ((SI_MAX_SIZE - __ARCH_SI_PREAMBLE_SIZE) / sizeof(int)),
+
+	__ARCH_SI_PREAMBLE_SIZE = (3 * sizeof(int)),
+	__SI_KILL = 0,
+	__SI_TIMER = 0,
+	__SI_POLL = 0,
+	__SI_FAULT = 0,
+	__SI_CHLD = 0,
+	__SI_RT = 0,
+	__SI_MESGQ = 0,
+	__SI_SYS = 0,
+	SI_USER = 0,
+	SI_KERNEL = 0x80,
+	SI_QUEUE = -1,
+	SI_TIMER __SI_CODE(__SI_TIMER,-2),
+	SI_MESGQ __SI_CODE(__SI_MESGQ,-3),
+	SI_ASYNCIO = -4,
+	SI_SIGIO = -5,
+	SI_TKILL = -6,
+	SI_DETHREAD = -7,
+	SI_FROMUSER(siptr) = ((siptr)->si_code <= 0),
+	SI_FROMKERNEL(siptr) = ((siptr)->si_code > 0),
+	ILL_ILLOPC = (__SI_FAULT|1),
+	ILL_ILLOPN = (__SI_FAULT|2),
+	ILL_ILLADR = (__SI_FAULT|3),
+	ILL_ILLTRP = (__SI_FAULT|4),
+	ILL_PRVOPC = (__SI_FAULT|5),
+	ILL_PRVREG = (__SI_FAULT|6),
+	ILL_COPROC = (__SI_FAULT|7),
+	ILL_BADSTK = (__SI_FAULT|8),
+	NSIGILL = 8,
+	FPE_INTDIV = (__SI_FAULT|1),
+	FPE_INTOVF = (__SI_FAULT|2),
+	FPE_FLTDIV = (__SI_FAULT|3),
+	FPE_FLTOVF = (__SI_FAULT|4),
+	FPE_FLTUND = (__SI_FAULT|5),
+	FPE_FLTRES = (__SI_FAULT|6),
+	FPE_FLTINV = (__SI_FAULT|7),
+	FPE_FLTSUB = (__SI_FAULT|8),
+	NSIGFPE = 8,
+	SEGV_MAPERR = (__SI_FAULT|1),
+	SEGV_ACCERR = (__SI_FAULT|2),
+	NSIGSEGV = 2,
+	BUS_ADRALN = (__SI_FAULT|1),
+	BUS_ADRERR = (__SI_FAULT|2),
+	BUS_OBJERR = (__SI_FAULT|3),
+	BUS_MCEERR_AR = (__SI_FAULT|4),
+	BUS_MCEERR_AO = (__SI_FAULT|5),
+	NSIGBUS = 5,
+	TRAP_BRKPT = (__SI_FAULT|1),
+	TRAP_TRACE = (__SI_FAULT|2),
+	TRAP_BRANCH     (__SI_FAULT|3),
+	TRAP_HWBKPT     (__SI_FAULT|4),
+	NSIGTRAP = 4,
+	CLD_EXITED = (__SI_CHLD|1),
+	CLD_KILLED = (__SI_CHLD|2),
+	CLD_DUMPED = (__SI_CHLD|3),
+	CLD_TRAPPED = (__SI_CHLD|4),
+	CLD_STOPPED = (__SI_CHLD|5),
+	CLD_CONTINUED = (__SI_CHLD|6),
+	NSIGCHLD = 6,
+	POLL_IN = (__SI_POLL|1),
+	POLL_OUT = (__SI_POLL|2),
+	POLL_MSG = (__SI_POLL|3),
+	POLL_ERR = (__SI_POLL|4),
+	POLL_PRI = (__SI_POLL|5),
+	POLL_HUP = (__SI_POLL|6),
+	NSIGPOLL = 6,
+	SYS_SECCOMP = (__SI_SYS|1),
+	NSIGSYS = 1,
+	SIGEV_SIGNAL = 0,
+	SIGEV_NONE = 1,
+	SIGEV_THREAD = 2,
+	SIGEV_THREAD_ID 4,
+	__ARCH_SIGEV_PREAMBLE_SIZE = (sizeof(int) * 2 + sizeof(sigval_t)),
+	SIGEV_MAX_SIZE = 64,
+	SIGEV_PAD_SIZE = ((SIGEV_MAX_SIZE - __ARCH_SIGEV_PREAMBLE_SIZE) / sizeof(int)),
+
+	SOL_SOCKET = 1,
+	SO_DEBUG = 1,
+	SO_REUSEADDR = 2,
+	SO_TYPE = 3,
+	SO_ERROR = 4,
+	SO_DONTROUTE = 5,
+	SO_BROADCAST = 6,
+	SO_SNDBUF = 7,
+	SO_RCVBUF = 8,
+	SO_SNDBUFFORCE = 32,
+	SO_RCVBUFFORCE = 33,
+	SO_KEEPALIVE = 9,
+	SO_OOBINLINE = 10,
+	SO_NO_CHECK = 11,
+	SO_PRIORITY = 12,
+	SO_LINGER = 13,
+	SO_BSDCOMPAT = 14,
+	SO_REUSEPORT = 15,
+	SO_PASSCRED = 16,
+	SO_PEERCRED = 17,
+	SO_RCVLOWAT = 18,
+	SO_SNDLOWAT = 19,
+	SO_RCVTIMEO = 20,
+	SO_SNDTIMEO = 21,
+	SO_SECURITY_AUTHENTICATION = 22,
+	SO_SECURITY_ENCRYPTION_TRANSPORT = 23,
+	SO_SECURITY_ENCRYPTION_NETWORK = 24,
+	SO_BINDTODEVICE = 25,
+	SO_ATTACH_FILTER = 26,
+	SO_DETACH_FILTER = 27,
+	SO_GET_FILTER = SO_ATTACH_FILTER,
+	SO_PEERNAME = 28,
+	SO_TIMESTAMP = 29,
+	SCM_TIMESTAMP = SO_TIMESTAMP,
+	SO_ACCEPTCONN = 30,
+	SO_PEERSEC = 31,
+	SO_PASSSEC = 34,
+	SO_TIMESTAMPNS = 35,
+	SCM_TIMESTAMPNS = SO_TIMESTAMPNS,
+	SO_MARK = 36,
+	SO_TIMESTAMPING = 37,
+	SCM_TIMESTAMPING = SO_TIMESTAMPING,
+	SO_PROTOCOL = 38,
+	SO_DOMAIN = 39,
+	SO_RXQ_OVFL             40,
+	SO_WIFI_STATUS = 41,
+	SCM_WIFI_STATUS = SO_WIFI_STATUS,
+	SO_PEEK_OFF = 42,
+	SO_NOFCS = 43,
+	SO_LOCK_FILTER = 44,
+	SO_SELECT_ERR_QUEUE = 45,
+	SO_BUSY_POLL = 46,
+
+	SOCK_STREAM    = 1,
+	SOCK_DGRAM     = 2,
+	SOCK_RAW       = 3,
+	SOCK_RDM       = 4,
+	SOCK_SEQPACKET = 5,
+
+	//sockios
+	FIOSETOWN = 0x8901,
+	SIOCSPGRP = 0x8902,
+	FIOGETOWN = 0x8903,
+	SIOCGPGRP = 0x8904,
+	SIOCATMARK = 0x8905,
+	SIOCGSTAMP = 0x8906 ,
+	SIOCGSTAMPNS = 0x8907,
+
+	//termbits
+	VINTR = 0,
+	VQUIT = 1,
+	VERASE = 2,
+	VKILL = 3,
+	VEOF = 4,
+	VTIME = 5,
+	VMIN = 6,
+	VSWTC = 7,
+	VSTART = 8,
+	VSTOP = 9,
+	VSUSP = 10,
+	VEOL = 11,
+	VREPRINT = 12,
+	VDISCARD = 13,
+	VWERASE = 14,
+	VLNEXT = 15,
+	VEOL2 = 16,
+	IGNBRK = 0000001,
+	BRKINT = 0000002,
+	IGNPAR = 0000004,
+	PARMRK = 0000010,
+	INPCK = 0000020,
+	ISTRIP = 0000040,
+	INLCR = 0000100,
+	IGNCR = 0000200,
+	ICRNL = 0000400,
+	IUCLC = 0001000,
+	IXON = 0002000,
+	IXANY = 0004000,
+	IXOFF = 0010000,
+	IMAXBEL = 0020000,
+	IUTF8 = 0040000,
+	OPOST = 0000001,
+	OLCUC = 0000002,
+	ONLCR = 0000004,
+	OCRNL = 0000010,
+	ONOCR = 0000020,
+	ONLRET = 0000040,
+	OFILL = 0000100,
+	OFDEL = 0000200,
+	NLDLY = 0000400,
+	NL0 = 0000000,
+	NL1 = 0000400,
+	CRDLY = 0003000,
+	CR0 = 0000000,
+	CR1 = 0001000,
+	CR2 = 0002000,
+	CR3 = 0003000,
+	TABDLY = 0014000,
+	TAB0 = 0000000,
+	TAB1 = 0004000,
+	TAB2 = 0010000,
+	TAB3 = 0014000,
+	XTABS = 0014000,
+	BSDLY = 0020000,
+	BS0 = 0000000,
+	BS1 = 0020000,
+	VTDLY = 0040000,
+	VT0 = 0000000,
+	VT1 = 0040000,
+	FFDLY = 0100000,
+	FF0 = 0000000,
+	FF1 = 0100000,
+	CBAUD = 0010017,
+	B0 = 0000000,
+	B50 = 0000001,
+	B75 = 0000002,
+	B110 = 0000003,
+	B134 = 0000004,
+	B150 = 0000005,
+	B200 = 0000006,
+	B300 = 0000007,
+	B600 = 0000010,
+	B1200 = 0000011,
+	B1800 = 0000012,
+	B2400 = 0000013,
+	B4800 = 0000014,
+	B9600 = 0000015,
+	B19200 = 0000016,
+	B38400 = 0000017,
+	EXTA B19200,
+	EXTB B38400,
+	CSIZE = 0000060,
+	CS5 = 0000000,
+	CS6 = 0000020,
+	CS7 = 0000040,
+	CS8 = 0000060,
+	CSTOPB = 0000100,
+	CREAD = 0000200,
+	PARENB = 0000400,
+	PARODD = 0001000,
+	HUPCL = 0002000,
+	CLOCAL = 0004000,
+	CBAUDEX = 0010000,
+	BOTHER = 0010000,
+	B57600 = 0010001,
+	B115200 = 0010002,
+	B230400 = 0010003,
+	B460800 = 0010004,
+	B500000 = 0010005,
+	B576000 = 0010006,
+	B921600 = 0010007,
+	B1000000 = 0010010,
+	B1152000 = 0010011,
+	B1500000 = 0010012,
+	B2000000 = 0010013,
+	B2500000 = 0010014,
+	B3000000 = 0010015,
+	B3500000 = 0010016,
+	B4000000 = 0010017,
+	CIBAUD =  002003600000,
+	CMSPAR =  010000000000,
+	CRTSCTS =  020000000000,
+	IBSHIFT =  16,
+	ISIG = 0000001,
+	ICANON = 0000002,
+	XCASE = 0000004,
+	ECHO = 0000010,
+	ECHOE = 0000020,
+	ECHOK = 0000040,
+	ECHONL = 0000100,
+	NOFLSH = 0000200,
+	TOSTOP = 0000400,
+	ECHOCTL = 0001000,
+	ECHOPRT = 0002000,
+	ECHOKE = 0004000,
+	FLUSHO = 0010000,
+	PENDIN = 0040000,
+	IEXTEN = 0100000,
+	EXTPROC = 0200000,
+	TCOOFF = 0,
+	TCOON = 1,
+	TCIOFF = 2,
+	TCION = 3,
+	TCIFLUSH = 0,
+	TCOFLUSH = 1,
+	TCIOFLUSH = 2,
+	TCSANOW = 0,
+	TCSADRAIN = 1,
+	TCSAFLUSH = 2,
+
+	//ioctls
+	TCGETS = 0x5401,
+	TCSETS = 0x5402,
+	TCSETSW = 0x5403,
+	TCSETSF = 0x5404,
+	TCGETA = 0x5405,
+	TCSETA = 0x5406,
+	TCSETAW = 0x5407,
+	TCSETAF = 0x5408,
+	TCSBRK = 0x5409,
+	TCXONC = 0x540A,
+	TCFLSH = 0x540B,
+	TIOCEXCL = 0x540C,
+	TIOCNXCL = 0x540D,
+	TIOCSCTTY = 0x540E,
+	TIOCGPGRP = 0x540F,
+	TIOCSPGRP = 0x5410,
+	TIOCOUTQ = 0x5411,
+	TIOCSTI = 0x5412,
+	TIOCGWINSZ = 0x5413,
+	TIOCSWINSZ = 0x5414,
+	TIOCMGET = 0x5415,
+	TIOCMBIS = 0x5416,
+	TIOCMBIC = 0x5417,
+	TIOCMSET = 0x5418,
+	TIOCGSOFTCAR = 0x5419,
+	TIOCSSOFTCAR = 0x541A,
+	FIONREAD = 0x541B,
+	TIOCINQ = FIONREAD,
+	TIOCLINUX = 0x541C,
+	TIOCCONS = 0x541D,
+	TIOCGSERIAL = 0x541E,
+	TIOCSSERIAL = 0x541F,
+	TIOCPKT = 0x5420,
+	FIONBIO = 0x5421,
+	TIOCNOTTY = 0x5422,
+	TIOCSETD = 0x5423,
+	TIOCGETD = 0x5424,
+	TCSBRKP = 0x5425,
+	TIOCSBRK = 0x5427 ,
+	TIOCCBRK = 0x5428 ,
+	TIOCGSID = 0x5429 ,
+	TIOCGRS485 = 0x542E,
+	TIOCSRS485 = 0x542F,
+	TCGETX = 0x5432,
+	TCSETX = 0x5433,
+	TCSETXF = 0x5434,
+	TCSETXW = 0x5435,
+	TIOCVHANGUP = 0x5437,
+	FIONCLEX = 0x5450,
+	FIOCLEX = 0x5451,
+	FIOASYNC = 0x5452,
+	TIOCSERCONFIG = 0x5453,
+	TIOCSERGWILD = 0x5454,
+	TIOCSERSWILD = 0x5455,
+	TIOCGLCKTRMIOS = 0x5456,
+	TIOCSLCKTRMIOS = 0x5457,
+	TIOCSERGSTRUCT = 0x5458,
+	TIOCSERGETLSR   0x5459,
+	TIOCSERGETMULTI 0x545A,
+	TIOCSERSETMULTI 0x545B,
+	TIOCMIWAIT = 0x545C,
+	TIOCGICOUNT = 0x545D,
+	FIOQSIZE = 0x5460,
+	
+	//modem lines
+	TIOCM_LE = 0x001,
+	TIOCM_DTR = 0x002,
+	TIOCM_RTS = 0x004,
+	TIOCM_ST = 0x008,
+	TIOCM_SR = 0x010,
+	TIOCM_CTS = 0x020,
+	TIOCM_CAR = 0x040,
+	TIOCM_RNG = 0x080,
+	TIOCM_DSR = 0x100,
+	TIOCM_CD = TIOCM_CAR,
+	TIOCM_RI = TIOCM_RNG,
+	TIOCM_OUT1 = 0x2000,
+	TIOCM_OUT2 = 0x4000,
+	TIOCM_LOOP = 0x8000,
+
+
+	TCGETS2 = _IOR('T', 0x2A, struct termios2),
+	TCSETS2 = _IOW('T', 0x2B, struct termios2),
+	TCSETSW2 = _IOW('T', 0x2C, struct termios2),
+	TCSETSF2 = _IOW('T', 0x2D, struct termios2),
+	TIOCGPTN = _IOR('T', 0x30, unsigned int),
+	TIOCSPTLCK = _IOW('T', 0x31, int) ,
+	TIOCGDEV = _IOR('T', 0x32, unsigned int),
+	TIOCSIG = _IOW('T', 0x36, int) ,
+	TIOCGPKT = _IOR('T', 0x38, int),
+	TIOCGPTLCK = _IOR('T', 0x39, int),
+	TIOCGEXCL = _IOR('T', 0x40, int),
+
+
+	NORMAL_VGA = 0xffff,
+	EXTENDED_VGA = 0xfffe,
+	ASK_VGA = 0xfffd,
+
+	WNOHANG = 0x00000001,
+	WUNTRACED = 0x00000002,
+	WSTOPPED = WUNTRACED,
+	WEXITED = 0x00000004,
+	WCONTINUED = 0x00000008,
+	WNOWAIT = 0x01000000,
+	
+	__WNOTHREAD = 0x20000000,
+	__WALL = 0x40000000,
+	__WCLONE = 0x80000000,
+
+	X86_SUBARCH_PC = 0,
+	X86_SUBARCH_LGUEST = 1,
+	X86_SUBARCH_XEN = 2,
+	X86_SUBARCH_MRST = 3,
+	X86_SUBARCH_CE4100 = 4,
+	X86_NR_SUBARCHS = 5,
+
+	XLF_KERNEL_64 = 1,
+	XLF_CAN_BE_LOADED_ABOVE_4G = 2,
+	XLF_EFI_HANDOVER_32 = 4,
+	XLF_EFI_HANDOVER_64 = 8,
+
+
+};
+
+#if 1 //macros
 #ifndef NULL
 #define NULL ((void *)0)
 #endif
+
+#define CHAR_BIT __CHAR_BIT__ //__CHAR_BIT__ is passed by the compiler
+#if __BITS_PER_LONG != 64
+#define IFBITSPERLONGNEQ64(...) __VA_ARGS__
+#define IFBITSPERLONGEQ64(...)
+#else
+#define IFBITSPERLONGNEQ64(...)
+#define IFBITSPERLONGEQ64(...) __VA_ARGS__
+#endif
+
+#define ROL(x,y) (x<<y)|(x>>((sizeof(x)*CHAR_BIT) -y))
+#define ROR(x,y) (x>>y)|(x<<((sizeof(x)*CHAR_BIT) -y))
+
+#define _IOC(d,t,n,sz) (((d) << _IOC_DIRSHIFT) | ((t) << _IOC_TYPESHIFT) | \
+	((n) << _IOC_NRSHIFT) | ((sz) << _IOC_SIZESHIFT))
+#define _IOC_TYPECHECK(t) (sizeof(t))
+#define _IO(type,nr)		_IOC(_IOC_NONE,(type),(nr),0)
+#define _IOR(type,nr,size)	_IOC(_IOC_READ,(type),(nr),(_IOC_TYPECHECK(size)))
+#define _IOW(type,nr,size)	_IOC(_IOC_WRITE,(type),(nr),(_IOC_TYPECHECK(size)))
+#define _IOWR(type,nr,size)	_IOC(_IOC_READ|_IOC_WRITE,(type),(nr),(_IOC_TYPECHECK(size)))
+#define _IOR_BAD(type,nr,size)	_IOC(_IOC_READ,(type),(nr),sizeof(size))
+#define _IOW_BAD(type,nr,size)	_IOC(_IOC_WRITE,(type),(nr),sizeof(size))
+#define _IOWR_BAD(type,nr,size)	_IOC(_IOC_READ|_IOC_WRITE,(type),(nr),sizeof(size))
+#define _IOC_DIR(nr)		(((nr) >> _IOC_DIRSHIFT) & _IOC_DIRMASK)
+#define _IOC_TYPE(nr)		(((nr) >> _IOC_TYPESHIFT) & _IOC_TYPEMASK)
+#define _IOC_NR(nr)		(((nr) >> _IOC_NRSHIFT) & _IOC_NRMASK)
+#define _IOC_SIZE(nr)		(((nr) >> _IOC_SIZESHIFT) & _IOC_SIZEMASK)
+#define IOC_IN		(_IOC_WRITE << _IOC_DIRSHIFT)
+#define IOC_OUT		(_IOC_READ << _IOC_DIRSHIFT)
+#define IOC_INOUT	((_IOC_WRITE|_IOC_READ) << _IOC_DIRSHIFT)
+#define IOCSIZE_MASK	(_IOC_SIZEMASK << _IOC_SIZESHIFT)
+#define IOCSIZE_SHIFT	(_IOC_SIZESHIFT)
 
 #if __STDC_VERSION__ >= 201103L
 #define noreturn _Noreturn
@@ -157,7 +942,7 @@
 #define noreturn __attribute__((noreturn))
 #endif
 
-
+#endif
 
 #if 1 //syscall macro stuff, TODO - handle multiple returns and extra clobs
 
@@ -228,11 +1013,10 @@
 #define syscall7(n,a,b,c,d,e,f,g) _syscall7(n,(long)(a),(long)(b),(long)(c),(long)(d),(long)(e),(long)(f),(long)(g))
 #endif 
 
-
-#if 1 //typedefs use the kernel's builtin types for our typedefs
-typedef unsigned char byte, u8, __u8,  uint8, uint8_t;
-typedef unsigned short u16, __u16, word, uid16_t, gid16_t, uint16, old_uid_t, old_gid_t, sa_family_t, uint16_t;
-typedef unsigned int u32, __u32, dword, ucs4_t, mode_t, daddr_t, uid_t, uid32_t, gid32_t, gid_t, uint32, uint32_t;
+#if 1 //typedefs 
+typedef unsigned char byte, cc_t, u8, __u8,  uint8, uint8_t;
+typedef unsigned short gid16_t, old_gid_t, old_uid_t, sa_family_t, u16, __u16, uid16_t, uint16, uint16_t, word;
+typedef unsigned int dword, mode_t, daddr_t, gid32_t, gid_t, old_dev_t, speed_t, tcflag_t, u32, __u32, ucs4_t, uid_t, uid_t, uid32_t, uint, uint32, uint32_t;
 typedef unsigned long long u64, __u64, uint64, uint64_t;
 
 typedef signed char int8, int8_t, s8, __s8;
@@ -241,39 +1025,272 @@ typedef signed int bool, clockid_t, int32_t,  ipc_pid_t, key_t, mqd_t, pid_t, s3
 typedef signed long long  loff_t, int64_t, s64, __s64;
 
 typedef char * caddr_t;
-typedef unsigned long ino_t, old_dev_t, size_t, ulong_t;
-typedef long  clock_t, long_t, off_t, ptrdiff_t, ssize_t, suseconds_t, time_t;
+typedef unsigned long ino_t, old_dev_t, size_t, ulong_t, ulong;
+typedef long  band_t, clock_t, long_t, off_t, ptrdiff_t, ssize_t, suseconds_t, time_t;
+
+
+struct exec{
+	u32 a_info;
+	u32 a_text;
+	u32 a_data;
+	u32 a_bss;	
+	u32 a_syms;
+	u32 a_entry;
+	u32 a_trsize;
+	u32 a_drsize;
+};
+#define N_TRSIZE(a) ((a).a_trsize)
+#define N_DRSIZE(a) ((a).a_drsize)
+#define N_SYMSIZE(a) ((a).a_syms)
+
 
 typedef struct {
  int val[2];
 }fsid_t;
+
+typedef struct {
+ ulong fds_bits[1024 / (8 * sizeof(long))];
+} fd_set;
+
+struct flock {
+	short	l_type;
+	short	l_whence;
+	off_t	l_start;
+	off_t	l_len;
+	pid_t	l_pid;
+};
+
+struct flock64 {
+	short  l_type;
+	short  l_whence;
+	loff_t l_start;
+	loff_t l_len;
+	pid_t  l_pid;
+};
+
+struct f_owner_ex {
+	int	type;
+	pid_t	pid;
+};
 
 struct in_addr {
  u32 s_addr;
 };
 
 struct in6_addr {
- union {
-  u8 u6_addr8[16];
-  u16 u6_addr16[8];
-  u32 u6_addr32[4];
- } in6_u;
+	union {
+		u8 u6_addr8[16];
+		u16 u6_addr16[8];
+		u32 u6_addr32[4];
+	} in6_u;
 };
 
+struct ipc64_perm {
+	key_t		key;
+	uid32_t	uid;
+	gid32_t	gid;
+	uid32_t	cuid;
+	gid32_t	cgid;
+	mode_t		mode;
+	u8		__pad1[4 - sizeof(mode_t)];
+	u16		seq;
+	u16		__pad2;
+	ulong		__unused1;
+	ulong		__unused2;
+};
 
-typedef struct {
- unsigned long fds_bits[1024 / (8 * sizeof(long))];
-} fd_set;
+struct ktermios {
+	tcflag_t c_iflag;	
+	tcflag_t c_oflag;	
+	tcflag_t c_cflag;	
+	tcflag_t c_lflag;	
+	cc_t c_line;		
+	cc_t c_cc[NCCS];	
+	speed_t c_ispeed;	
+	speed_t c_ospeed;	
+};
+
+struct msqid64_ds {
+	struct ipc64_perm msg_perm;
+	time_t msg_stime;
+IFBITSPERLONGNEQ64(ulong	__unused1;)
+	time_t msg_rtime;
+IFBITSPERLONGNEQ64(ulong	__unused2;)
+	time_t msg_ctime;
+IFBITSPERLONGNEQ64(ulong	__unused3;)
+	ulong msg_cbytes;
+	ulong msg_qnum;
+	ulong msg_qbytes;
+	pid_t msg_lspid;
+	pid_t msg_lrpid;
+	ulong  __unused4;
+	ulong  __unused5;
+};
+
+struct pollfd {
+	int fd;
+	short events;
+	short revents;
+};
+
+struct semid64_ds {
+	struct ipc64_perm sem_perm;
+	__kernel_time_t	sem_otime;
+IFBITSPERLONGNEQ64(unsigned long	__unused1;)
+	__kernel_time_t	sem_ctime;
+IFBITSPERLONGNEQ64(unsigned long	__unused2;)
+	ulong	sem_nsems;
+	ulong	__unused3;
+	ulong	__unused4;
+};
+
+struct setup_data {
+	u64 next;
+	u32 type;
+	u32 len;
+	u8 data[0];
+};
+
+struct setup_header {
+	u8 setup_sects;
+	u16 root_flags;
+	u32 syssize;
+	u16 ram_size;
+	u16 vid_mode;
+	u16 root_dev;
+	u16 boot_flag;
+	u16 jump;
+	u32 header;
+	u16 version;
+	u32 realmode_swtch;
+	u16 start_sys;
+	u16 kernel_version;
+	u8 type_of_loader;
+	u8 loadflags;
+	u16 setup_move_size;
+	u32 code32_start;
+	u32 ramdisk_image;
+	u32 ramdisk_size;
+	u32 bootsect_kludge;
+	u16 heap_end_ptr;
+	u8 ext_loader_ver;
+	u8 ext_loader_type;
+	u32 cmd_line_ptr;
+	u32 initrd_addr_max;
+	u32 kernel_alignment;
+	u8 relocatable_kernel;
+	u8 min_alignment;
+	u16 xloadflags;
+	u32 cmdline_size;
+	u32 hardware_subarch;
+	u64 hardware_subarch_data;
+	u32 payload_offset;
+	u32 payload_length;
+	u64 setup_data;
+	u64 pref_address;
+	u32 init_size;
+	u32 handover_offset;
+} attribute((packed));
+
+struct shmid64_ds {
+	struct ipc64_perm	shm_perm;
+	size_t shm_segsz;
+	time_t shm_atime;
+IFBITSPERLONGNEQ64(ulong __unused1;)
+	time_t 	shm_dtime;
+IFBITSPERLONGNEQ64(ulong __unused2;)
+	__kernel_time_t		shm_ctime;
+IFBITSPERLONGNEQ64(ulong __unused3;)
+	pid_t shm_cpid;
+	pid_t shm_lpid;
+	ulong shm_nattch;
+	ulong __unused4;
+	ulong __unused5;
+};
+
+struct shminfo64 {
+	ulong shmmax;
+	ulong shmmin;
+	ulong shmmni;
+	ulong shmseg;
+	ulong shmall;
+	ulong __unused1;
+	ulong __unused2;
+	ulong __unused3;
+	ulong __unused4;
+};
+
+typedef struct sigevent {
+	sigval_t sigev_value;
+	int sigev_signo;
+	int sigev_notify;
+	union {
+		int _pad[SIGEV_PAD_SIZE];
+		int _tid;
+		struct {
+			void (*_function)(sigval_t);
+			void *_attribute;
+		} _sigev_thread;
+	} _sigev_un;
+} sigevent_t;
+
+typedef struct siginfo {
+	int si_signo;
+	int si_errno;
+	int si_code;
+	union {
+		int _pad[SI_PAD_SIZE];
+		struct {
+			pid_t _pid;
+			uid_t _uid;
+		} _kill;
+		struct {
+			timer_t _tid;
+			int _overrun;
+			char _pad[sizeof(uid_t) - sizeof(int)];
+			sigval_t _sigval;
+			int _sys_private;
+		} _timer;
+		struct {
+			pid_t _pid;
+			uid_t _uid;
+			sigval_t _sigval;
+		} _rt;
+		struct {
+			pid_t _pid;
+			uid_t _uid;
+			int _status;
+			clock_t _utime;
+			clock_t _stime;
+		} _sigchld;
+		struct {
+			void *_addr;
+#ifdef __ARCH_SI_TRAPNO
+			int _trapno;
+#endif
+			short _addr_lsb;
+		} _sigfault;
+		struct {
+			band_t _band;
+			int _fd;
+		} _sigpoll;
+		struct {
+			void *_call_addr;
+			int _syscall;
+			uint _arch;	
+		} _sigsys;
+	} _sifields;
+} __ARCH_SI_ATTRIBUTES siginfo_t;
 
 struct sockaddr_in {
   sa_family_t sin_family;
   u16 sin_port;
   struct in_addr sin_addr;
-  u8 __pad[16 - sizeof(short int) - sizeof(unsigned short int) - sizeof(struct in_addr)];
+  u8 __pad[16 - sizeof(sa_family_t) - sizeof(u16) - sizeof(struct in_addr)];
 };
 
 struct sockaddr_in6 {
- unsigned short int sin6_family;
+ u16 sin6_family;
  u16 sin6_port;
  u32 sin6_flowinfo;
  struct in6_addr sin6_addr;
@@ -285,144 +1302,103 @@ struct sockaddr_storage {
  char __data[128 - sizeof(unsigned short)];
 } __attribute__ ((aligned((__alignof__ (struct sockaddr *)))));
 
-typedef union address {
-    struct sockaddr { sa_family_t sa_family; char sa_data[14]; } sa;
-    struct sockaddr_in sa_in;
-    struct sockaddr_in6 sa_in6;
-//    struct sockaddr_storage sa_stor;
-} address_t;
+struct stat {
+	unsigned long	st_dev;	
+	unsigned long	st_ino;	
+	unsigned int	st_mode;
+	unsigned int	st_nlink;
+	unsigned int	st_uid;	
+	unsigned int	st_gid;	
+	unsigned long	st_rdev;
+	unsigned long	__pad1;
+	long		st_size;
+	int		st_blksize;
+	int		__pad2;
+	long		st_blocks;
+	long		st_atime;
+	unsigned long	st_atime_nsec;
+	long		st_mtime;
+	unsigned long	st_mtime_nsec;
+	long		st_ctime;
+	unsigned long	st_ctime_nsec;
+	unsigned int	__unused4;
+	unsigned int	__unused5;
+};
+
+struct stat64 {
+	unsigned long long st_dev;
+	unsigned long long st_ino;
+	unsigned int	st_mode;
+	unsigned int	st_nlink;
+	unsigned int	st_uid;	
+	unsigned int	st_gid;	
+	unsigned long long st_rdev;
+	unsigned long long __pad1;
+	long long	st_size;
+	int		st_blksize;
+	int		__pad2;
+	long long	st_blocks;
+	int		st_atime;
+	unsigned int	st_atime_nsec;
+	int		st_mtime;
+	unsigned int	st_mtime_nsec;
+	int		st_ctime;
+	unsigned int	st_ctime_nsec;
+	unsigned int	__unused4;
+	unsigned int	__unused5;
+};
+
+struct termio {
+	u16 c_iflag;	
+	u16 c_oflag;	
+	u16 c_cflag;	
+	u16 c_lflag;	
+	u8 c_line;	
+	u8 c_cc[NCC];
+};
+
+struct termios2 {
+	tcflag_t c_iflag;	
+	tcflag_t c_oflag;	
+	tcflag_t c_cflag;	
+	tcflag_t c_lflag;	
+	cc_t c_line;		
+	cc_t c_cc[NCCS];	
+	speed_t c_ispeed;	
+	speed_t c_ospeed;	
+};
 
 struct timespec{
     time_t tv_sec;
     long tv_nsec;
 };
 
-
-#endif
-
-enum{ //this defines _ALL_ common enums in one spot
-	AF_UNSPEC    = 0,
-	AF_UNIX	     = 1,
-	AF_INET	     = 2,
-	AF_AX25	     = 3,
-	AF_IPX       = 4,
-	AF_APPLETALK = 5,
-	AF_NETROM    = 6,
-	AF_BRIDGE    = 7,
-	AF_AAL5      = 8,
-	AF_X25       = 9,
-	AF_INET6     = 10,
-	AF_MAX       = 12,
-
-	CSIGNAL = 0x000000ff,
-	CLONE_VM = 0x00000100,
-	CLONE_FS = 0x00000200,
-	CLONE_FILES = 0x00000400,
-	CLONE_SIGHAND = 0x00000800,
-	CLONE_PTRACE = 0x00002000,
-	CLONE_VFORK = 0x00004000,
-	CLONE_PARENT = 0x00008000,
-	CLONE_THREAD = 0x00010000,
-	CLONE_NEWNS = 0x00020000,
-	CLONE_SYSVSEM = 0x00040000,
-	CLONE_SETTLS = 0x00080000,
-	CLONE_PARENT_SETTID = 0x00100000,
-	CLONE_CHILD_CLEARTID = 0x00200000,
-	CLONE_DETACHED = 0x00400000,
-	CLONE_UNTRACED = 0x00800000,
-	CLONE_CHILD_SETTID = 0x01000000,
-	CLONE_NEWUTS = 0x04000000,
-	CLONE_NEWIPC = 0x08000000,
-	CLONE_NEWUSER = 0x10000000,
-	CLONE_NEWPID = 0x20000000,
-	CLONE_NEWNET = 0x40000000,
-	CLONE_IO = 0x80000000,
-
-	IPPROTO_IP = 0,
-	IPPROTO_ICMP = 1,
-	IPPROTO_IGMP = 2,
-	IPPROTO_IPIP = 4,
-	IPPROTO_TCP = 6,
-	IPPROTO_EGP = 8,
-	IPPROTO_PUP = 12,
-	IPPROTO_UDP = 17,
-	IPPROTO_IDP = 22,
-	IPPROTO_TP = 29,
-	IPPROTO_DCCP = 33,
-	IPPROTO_IPV6 = 41,
-	IPPROTO_RSVP = 46,
-	IPPROTO_GRE = 47,
-	IPPROTO_ESP = 50,
-	IPPROTO_AH = 51,
-	IPPROTO_MTP = 92,
-	IPPROTO_BEETPH = 94,
-	IPPROTO_ENCAP = 98,
-	IPPROTO_PIM = 103,
-	IPPROTO_COMP = 108,
-	IPPROTO_SCTP = 132,
-	IPPROTO_UDPLITE = 136,
-	IPPROTO_RAW = 255,
-	IPPROTO_MAX =256,
-
-	P_ALL = 0,
-	P_PID = 1,
-	P_PGID = 2,
-
-	PF_UNSPEC    = AF_UNSPEC,
-	PF_UNIX      = AF_UNIX,
-	PF_INET      = AF_INET,
-	PF_AX25      = AF_AX25,
-	PF_IPX       = AF_IPX,
-	PF_APPLETALK = AF_APPLETALK,
-	PF_NETROM    = AF_NETROM,
-	PF_BRIDGE    = AF_BRIDGE,
-	PF_AAL5      = AF_AAL5,
-	PF_X25       = AF_X25,
-	PF_INET6     = AF_INET6,
-	PF_MAX       = AF_MAX,
-
-	SOCK_STREAM    = 1,
-	SOCK_DGRAM     = 2,
-	SOCK_RAW       = 3,
-	SOCK_RDM       = 4,
-	SOCK_SEQPACKET = 5,
-
-	WNOHANG = 0x00000001,
-	WUNTRACED = 0x00000002,
-	WSTOPPED = WUNTRACED,
-	WEXITED = 0x00000004,
-	WCONTINUED = 0x00000008,
-	WNOWAIT = 0x01000000,
-	
-	__WNOTHREAD = 0x20000000,
-	__WALL = 0x40000000,
-	__WCLONE = 0x80000000,
-
-
+struct ucontext {
+	ulong uc_flags;
+	struct ucontext *uc_link;
+	stack_t uc_stack;
+	struct sigcontext uc_mcontext;
+	sigset_t uc_sigmask;
 };
 
-enum { ENOERR,EPERM,ENOENT,ESRCH,EINTR,EIO,ENXIO,E2BIG,ENOEXEC,EBADF,
-	ECHILD,EAGAIN,ENOMEM,EACCES,EFAULT,ENOTBLK,EBUSY,EEXIST,EXDEV,ENODEV,
-	ENOTDIR,EISDIR,EINVAL,ENFILE,EMFILE,ENOTTY,ETXTBSY,EFBIG,ENOSPC,ESPIPE,
-	EROFS,EMLINK,EPIPE,EDOM,ERANGE,EDEADLK,ENAMETOOLONG,ENOLCK,ENOSYS,ENOTEMPTY,
-	ELOOP,EWOULDBLOCK,ENOMSG,EIDRM,ECHRNG,EL2NSYNC,EL3HLT,EL3RST,ELNRNG,EUNATCH,
-	ENOCSI,EL2HLT,EBADE,EBADR,EXFULL,ENOANO,EBADRQC,EBADSLT,EDEADLOCK,EBFONT,
-	ENOSTR,ENODATA,ETIME,ENOSR,ENONET,ENOPKG,EREMOTE,ENOLINK,EADV,ESRMNT,ECOMM,
-	EPROTO,EMULTIHOP,EDOTDOT,EBADMSG,EOVERFLOW,ENOTUNIQ,EBADFD,EREMCHG,ELIBACC,
-	ELIBBAD,ELIBSCN,ELIBMAX,ELIBEXEC,EILSEQ,ERESTART,ESTRPIPE,EUSERS,ENOTSOCK,
-	EDESTADDRREQ,EMSGSIZE,EPROTOTYPE,ENOPROTOOPT,EPROTONOSUPPORT,
-	ESOCKTNOSUPPORT,EOPNOTSUPP,EPFNOSUPPORT,EAFNOSUPPORT,EADDRINUSE,
-	EADDRNOTAVAIL,ENETDOWN,ENETUNREACH,ENETRESET,ECONNABORTED,ECONNRESET,
-	ENOBUFS,EISCONN,ENOTCONN,ESHUTDOWN,ETOOMANYREFS,ETIMEDOUT,ECONNREFUSED,
-	EHOSTDOWN,EHOSTUNREACH,EALREADY,EINPROGRESS,ESTALE,EUCLEAN,ENOTNAM,ENAVAIL,
-	EISNAM,EREMOTEIO,EDQUOT,ENOMEDIUM,EMEDIUMTYPE,ECANCELED,ENOKEY,EKEYEXPIRED,
-	EKEYREVOKED,EKEYREJECTED,EOWNERDEAD,ENOTRECOVERABLE,ERFKILL,EHWPOISON,ELAST
+struct winsize {
+	u16 ws_row;
+	u16 ws_col;
+	u16 ws_xpixel;
+	u16 ws_ypixel;
 };
 
-#if 1 //helper macros
-#define CHAR_BIT __CHAR_BIT__ //__CHAR_BIT__ is passed by the compiler
-#define ROL(x,y) (x<<y)|(x>>((sizeof(x)*CHAR_BIT) -y))
-#define ROR(x,y) (x>>y)|(x<<((sizeof(x)*CHAR_BIT) -y))
+typedef union address {
+    struct sockaddr { sa_family_t sa_family; char sa_data[14]; } sa;
+    struct sockaddr_in sa_in;
+    struct sockaddr_in6 sa_in6;
+} address_t;
+
+typedef union sigval {
+	int sival_int;
+	void *sival_ptr;
+} sigval_t;
+
 #endif
 
 #ifndef NO_GLOBAL_VARS
@@ -8546,7 +9522,7 @@ wrapped to handle errors directly or for automatic error handling via callbacks
 #endif
 
 /** arch_prctl() - get/set arch-specific thread state
- * int arch_prctl(int code,unsigned long addr); (or *addr for get ops)
+ * int arch_prctl(int code,ulong addr); (or *addr for get ops)
  **/
 #ifdef __NR_arch_prctl
 	#define arch_prctl(...) syscall(__NR_arch_prctl,__VA_ARGS__)
@@ -11050,8 +12026,8 @@ static const char strerrors[]=
 "Owner died\0" \
 "State not recoverable\0";
 
-static inline const char *getnthstring(const char *s,unsigned long n){while(n--)while(*s++);return s;}
-static inline const char *strerror(unsigned long e){return getnthstring(strerrors,(e<ELAST)?e:0);}
+static inline const char *getnthstring(const char *s,ulong n){while(n--)while(*s++);return s;}
+static inline const char *strerror(ulong e){return getnthstring(strerrors,(e<ELAST)?e:0);}
 
 static inline int strncmp(const char *s1, const char *s2, size_t len);
 static inline char *strstr(const char *haystack, const char *needle);
