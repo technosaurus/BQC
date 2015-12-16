@@ -1,6 +1,5 @@
 #ifndef BQC_H
 #define BQC_H
-
 #if 1 //architecture ports
 
 #include <linux/unistd.h>
@@ -21,8 +20,8 @@
 #ifdef __x86_64__
 	#define ARCH_DATA	"rsp","syscall", "rax","rax","rdi","rsi","rdx","r10","r8", "r9", "0", "rcx","r11","memory"
 //TODO x32 as subset
-	enum{
-		
+	enum {
+		__NR_
 	};
 #elif defined (__i386__)
 	#define ARCH_DATA	"esp","int $128","eax","eax","ebx","ecx","edx","esi","edi","ebp","0", "memory"
@@ -151,6 +150,660 @@
 
 #endif
 
+#if 1 //macros
+#ifndef NULL
+#define NULL ((void *)0)
+#endif
+#define CHAR_BIT __CHAR_BIT__ //__CHAR_BIT__ is passed by the compiler
+#if __BITS_PER_LONG != 64
+#define IFBITSPERLONGNEQ64(...) __VA_ARGS__
+#define IFBITSPERLONGEQ64(...)
+#else
+#define IFBITSPERLONGNEQ64(...)
+#define IFBITSPERLONGEQ64(...) __VA_ARGS__
+#endif
+
+
+#define NCCS	32
+#define __ARCH_SI_PREAMBLE_SIZE	(3 * sizeof(int))
+#define SI_MAX_SIZE	128
+#define SI_PAD_SIZE	((SI_MAX_SIZE - __ARCH_SI_PREAMBLE_SIZE) / sizeof(int))
+#define __ARCH_SIGEV_PREAMBLE_SIZE	(sizeof(int) * 2 + sizeof(sigval_t))
+#define SIGEV_MAX_SIZE	64
+#define SIGEV_PAD_SIZE	((SIGEV_MAX_SIZE - __ARCH_SIGEV_PREAMBLE_SIZE) / sizeof(int))
+#ifndef  __ARCH_SI_ATTRIBUTES
+#define __ARCH_SI_ATTRIBUTES
+#endif
+#define NCC	8
+
+
+#define ROL(x,y) (x<<y)|(x>>((sizeof(x)*CHAR_BIT) -y))
+#define ROR(x,y) (x>>y)|(x<<((sizeof(x)*CHAR_BIT) -y))
+
+#define SI_FROMUSER(siptr)	((siptr)->si_code <= 0),
+#define SI_FROMKERNEL(siptr)	((siptr)->si_code > 0),
+
+
+#define _IOC(d,t,n,sz) (((d) << _IOC_DIRSHIFT) | ((t) << _IOC_TYPESHIFT) | \
+	((n) << _IOC_NRSHIFT) | ((sz) << _IOC_SIZESHIFT))
+#define _IOC_TYPECHECK(t) (sizeof(t))
+#define _IO(type,nr)		_IOC(_IOC_NONE,(type),(nr),0)
+#define _IOR(type,nr,size)	_IOC(_IOC_READ,(type),(nr),(_IOC_TYPECHECK(size)))
+#define _IOW(type,nr,size)	_IOC(_IOC_WRITE,(type),(nr),(_IOC_TYPECHECK(size)))
+#define _IOWR(type,nr,size)	_IOC(_IOC_READ|_IOC_WRITE,(type),(nr),(_IOC_TYPECHECK(size)))
+#define _IOR_BAD(type,nr,size)	_IOC(_IOC_READ,(type),(nr),sizeof(size))
+#define _IOW_BAD(type,nr,size)	_IOC(_IOC_WRITE,(type),(nr),sizeof(size))
+#define _IOWR_BAD(type,nr,size)	_IOC(_IOC_READ|_IOC_WRITE,(type),(nr),sizeof(size))
+#define _IOC_DIR(nr)		(((nr) >> _IOC_DIRSHIFT) & _IOC_DIRMASK)
+#define _IOC_TYPE(nr)		(((nr) >> _IOC_TYPESHIFT) & _IOC_TYPEMASK)
+#define _IOC_NR(nr)		(((nr) >> _IOC_NRSHIFT) & _IOC_NRMASK)
+#define _IOC_SIZE(nr)		(((nr) >> _IOC_SIZESHIFT) & _IOC_SIZEMASK)
+#define IOC_IN		(_IOC_WRITE << _IOC_DIRSHIFT)
+#define IOC_OUT		(_IOC_READ << _IOC_DIRSHIFT)
+#define IOC_INOUT	((_IOC_WRITE|_IOC_READ) << _IOC_DIRSHIFT)
+#define IOCSIZE_MASK	(_IOC_SIZEMASK << _IOC_SIZESHIFT)
+#define IOCSIZE_SHIFT	(_IOC_SIZESHIFT)
+
+#if __STDC_VERSION__ >= 201103L
+#define noreturn _Noreturn
+#else
+#define noreturn __attribute__((noreturn))
+#endif
+
+#endif
+
+#if 1 //syscall macro stuff, TODO - handle multiple returns and extra clobs
+
+#define _P(x, y) x ## y
+#define P(x, y) _P(x, y)
+#define _H(x,...) x##_(__VA_ARGS__)
+#define	STACK_POINTER_(sp,...) sp
+#define	STACK_POINTER _H(STACK_POINTER,ARCH_DATA)
+#define	SYSCALL_(a,syscall,...) syscall
+#define	SYSCALL _H(SYSCALL,ARCH_DATA)
+#define	CALL_NUMBER_(a,b,cnum,...) cnum
+#define	CALL_NUMBER _H(CALL_NUMBER,ARCH_DATA)
+#define	RETURN_REGISTER_(a,b,c,ret,...) ret
+#define	RETURN_REGISTER  _H(RETURN_REGISTER,ARCH_DATA)
+#define	ARG1_(sp,sysc,cnum,ret,a1,...) a1
+#define	ARG1 _H(ARG1,ARCH_DATA)
+#define	ARG2_(sp,sysc,cnum,ret,a1,a2,...) a2
+#define	ARG2 _H(ARG2,ARCH_DATA)
+#define	ARG3_(sp,sysc,cnum,ret,a1,a2,a3,...) a3
+#define	ARG3 _H(ARG3,ARCH_DATA)
+#define	ARG4_(sp,sysc,cnum,ret,a1,a2,a3,a4,...) a4
+#define	ARG4 _H(ARG4,ARCH_DATA)
+#define	ARG5_(sp,sysc,cnum,ret,a1,a2,a3,a4,a5,...) a5
+#define	ARG5 _H(ARG5,ARCH_DATA)
+#define	ARG6_(sp,sysc,cnum,ret,a1,a2,a3,a4,a5,a6,...) a6
+#define	ARG6 _H(ARG6,ARCH_DATA)
+#define	ARG7_(sp,sysc,cnum,ret,a1,a2,a3,a4,a5,a6,a7,...) a7
+#define	ARG7 _H(ARG7,ARCH_DATA)
+#define	CLOB_(sp,sysc,cnum,ret,a1,a2,a3,a4,a5,a6,a7,...) __VA_ARGS__
+#define	CLOB _H(CLOB,ARCH_DATA)
+//TODO add option to clobber unused arguments of some platforms
+//ex. CLOB3_(sp,sysc,cnum,ret,a1,a2,a3,...) __VA_ARGS__
+
+#define SETREGISTER(var,reg,val) register long var __asm__(reg) = val
+#define SETRETURN_REGISTER register long ret __asm__(RETURN_REGISTER)
+#define SETREGISTERS0 SETRETURN_REGISTER;SETREGISTER(r0,CALL_NUMBER,cnum)
+#define SETREGISTERS1 SETREGISTERS0;SETREGISTER(r1,ARG1,a1)
+#define SETREGISTERS2 SETREGISTERS1;SETREGISTER(r2,ARG2,a2)
+#define SETREGISTERS3 SETREGISTERS2;SETREGISTER(r3,ARG3,a3)
+#define SETREGISTERS4 SETREGISTERS3;SETREGISTER(r4,ARG4,a4)
+#define SETREGISTERS5 SETREGISTERS4;SETREGISTER(r5,ARG5,a5)
+#define SETREGISTERS6 SETREGISTERS5;SETREGISTER(r6,ARG6,a6)
+#define SETREGISTERS7 SETREGISTERS6;SETREGISTER(r7,ARG7,a7)
+
+#define REGS0 "r"(r0)
+#define REGS1 REGS0,"r"(r1)
+#define REGS2 REGS1,"r"(r2)
+#define REGS3 REGS2,"r"(r3)
+#define REGS4 REGS3,"r"(r4)
+#define REGS5 REGS4,"r"(r5)
+#define REGS6 REGS5,"r"(r6)
+#define REGS7 REGS6,"r"(r7)
+
+#ifndef RET
+	#define RET "=r"(ret)
+#endif
+
+#define MKFNS(fn,...) MKFN_N(fn,##__VA_ARGS__,9,8,7,6,5,4,3,2,1,0)(__VA_ARGS__)
+#define MKFN_N(fn, n0, n1, n2, n3, n4, n5, n6, n7, n8, n9, n, ...) fn##n
+#define syscall(...) MKFNS(syscall,##__VA_ARGS__)
+#define syscall0(n) _syscall0(n)
+#define syscall1(n,a) _syscall1(n,(long)(a))
+#define syscall2(n,a,b) _syscall2(n,(long)(a),(long)(b))
+#define syscall3(n,a,b,c) _syscall3(n,(long)(a),(long)(b),(long)(c))
+#define syscall4(n,a,b,c,d) _syscall4(n,(long)(a),(long)(b),(long)(c),(long)(d))
+#define syscall5(n,a,b,c,d,e) _syscall5(n,(long)(a),(long)(b),(long)(c),(long)(d),(long)(e))
+#define syscall6(n,a,b,c,d,e,f) _syscall6(n,(long)(a),(long)(b),(long)(c),(long)(d),(long)(e),(long)(f))
+#define syscall7(n,a,b,c,d,e,f,g) _syscall7(n,(long)(a),(long)(b),(long)(c),(long)(d),(long)(e),(long)(f),(long)(g))
+#endif 
+
+#if 1 //typedefs 
+typedef unsigned char byte, cc_t, u8, __u8,  uint8, uint8_t;
+typedef unsigned short gid16_t, old_gid_t, old_uid_t, sa_family_t, u16, __u16, uid16_t, uint16, uint16_t, word;
+typedef unsigned int dword, mode_t, daddr_t, gid32_t, gid_t, old_dev_t, speed_t, tcflag_t, u32, __u32, ucs4_t, uid_t, uid_t, uid32_t, uint, uint32, uint32_t;
+typedef unsigned long long u64, __u64, uint64, uint64_t;
+
+typedef signed char int8, int8_t, s8, __s8;
+typedef signed short int16_t, s16, __s16;
+typedef signed int bool, clockid_t, int32_t,  ipc_pid_t, key_t, mqd_t, pid_t, s32, __s32, timer_t;
+typedef signed long long  loff_t, int64_t, s64, __s64;
+
+typedef char * caddr_t;
+typedef unsigned long ino_t, size_t, sigset_t, ulong, ulong_t;
+typedef long  band_t, clock_t, long_t, off_t, ptrdiff_t, ssize_t, suseconds_t, time_t;
+#endif
+
+#if 1 //structs
+struct exec{
+	u32 a_info;
+	u32 a_text;
+	u32 a_data;
+	u32 a_bss;	
+	u32 a_syms;
+	u32 a_entry;
+	u32 a_trsize;
+	u32 a_drsize;
+};
+#define N_TRSIZE(a) ((a).a_trsize)
+#define N_DRSIZE(a) ((a).a_drsize)
+#define N_SYMSIZE(a) ((a).a_syms)
+
+
+typedef struct {
+ int val[2];
+}fsid_t;
+
+typedef struct {
+ ulong fds_bits[1024 / (8 * sizeof(long))];
+} fd_set;
+
+struct flock {
+	short	l_type;
+	short	l_whence;
+	off_t	l_start;
+	off_t	l_len;
+	pid_t	l_pid;
+};
+
+struct flock64 {
+	short  l_type;
+	short  l_whence;
+	loff_t l_start;
+	loff_t l_len;
+	pid_t  l_pid;
+};
+
+struct f_owner_ex {
+	int	type;
+	pid_t	pid;
+};
+
+struct in_addr {
+ u32 s_addr;
+};
+
+struct in6_addr {
+	union {
+		u8 u6_addr8[16];
+		u16 u6_addr16[8];
+		u32 u6_addr32[4];
+	} in6_u;
+};
+
+struct ipc64_perm {
+	key_t		key;
+	uid32_t	uid;
+	gid32_t	gid;
+	uid32_t	cuid;
+	gid32_t	cgid;
+	mode_t		mode;
+	u8		__pad1[4 - sizeof(mode_t)];
+	u16		seq;
+	u16		__pad2;
+	ulong		__unused1;
+	ulong		__unused2;
+};
+
+struct ktermios {
+	tcflag_t c_iflag;	
+	tcflag_t c_oflag;	
+	tcflag_t c_cflag;	
+	tcflag_t c_lflag;	
+	cc_t c_line;		
+	cc_t c_cc[NCCS];	
+	speed_t c_ispeed;	
+	speed_t c_ospeed;	
+};
+
+struct msqid64_ds {
+	struct ipc64_perm msg_perm;
+	time_t msg_stime;
+IFBITSPERLONGNEQ64(ulong	__unused1;)
+	time_t msg_rtime;
+IFBITSPERLONGNEQ64(ulong	__unused2;)
+	time_t msg_ctime;
+IFBITSPERLONGNEQ64(ulong	__unused3;)
+	ulong msg_cbytes;
+	ulong msg_qnum;
+	ulong msg_qbytes;
+	pid_t msg_lspid;
+	pid_t msg_lrpid;
+	ulong  __unused4;
+	ulong  __unused5;
+};
+
+struct pollfd {
+	int fd;
+	short events;
+	short revents;
+};
+
+struct semid64_ds {
+	struct ipc64_perm sem_perm;
+	time_t	sem_otime;
+IFBITSPERLONGNEQ64(unsigned long	__unused1;)
+	time_t	sem_ctime;
+IFBITSPERLONGNEQ64(unsigned long	__unused2;)
+	ulong	sem_nsems;
+	ulong	__unused3;
+	ulong	__unused4;
+};
+
+struct setup_data {
+	u64 next;
+	u32 type;
+	u32 len;
+	u8 data[0];
+};
+
+struct setup_header {
+	u8 setup_sects;
+	u16 root_flags;
+	u32 syssize;
+	u16 ram_size;
+	u16 vid_mode;
+	u16 root_dev;
+	u16 boot_flag;
+	u16 jump;
+	u32 header;
+	u16 version;
+	u32 realmode_swtch;
+	u16 start_sys;
+	u16 kernel_version;
+	u8 type_of_loader;
+	u8 loadflags;
+	u16 setup_move_size;
+	u32 code32_start;
+	u32 ramdisk_image;
+	u32 ramdisk_size;
+	u32 bootsect_kludge;
+	u16 heap_end_ptr;
+	u8 ext_loader_ver;
+	u8 ext_loader_type;
+	u32 cmd_line_ptr;
+	u32 initrd_addr_max;
+	u32 kernel_alignment;
+	u8 relocatable_kernel;
+	u8 min_alignment;
+	u16 xloadflags;
+	u32 cmdline_size;
+	u32 hardware_subarch;
+	u64 hardware_subarch_data;
+	u32 payload_offset;
+	u32 payload_length;
+	u64 setup_data;
+	u64 pref_address;
+	u32 init_size;
+	u32 handover_offset;
+} __attribute__((packed));
+
+struct shmid64_ds {
+	struct ipc64_perm	shm_perm;
+	size_t shm_segsz;
+	time_t shm_atime;
+IFBITSPERLONGNEQ64(ulong __unused1;)
+	time_t 	shm_dtime;
+IFBITSPERLONGNEQ64(ulong __unused2;)
+	time_t		shm_ctime;
+IFBITSPERLONGNEQ64(ulong __unused3;)
+	pid_t shm_cpid;
+	pid_t shm_lpid;
+	ulong shm_nattch;
+	ulong __unused4;
+	ulong __unused5;
+};
+
+struct shminfo64 {
+	ulong shmmax;
+	ulong shmmin;
+	ulong shmmni;
+	ulong shmseg;
+	ulong shmall;
+	ulong __unused1;
+	ulong __unused2;
+	ulong __unused3;
+	ulong __unused4;
+};
+
+#if defined(__i386__) || defined(__x86_64__)
+struct _fpx_sw_bytes {
+	u32 magic1;
+	u32 extended_size;
+	u64 xstate_bv;
+	u32 xstate_size;
+	u32 padding[7];
+};
+#endif
+#ifdef __i386__
+
+struct _fpreg {
+	ushort significand[4];
+	ushort exponent;
+};
+
+struct _fpxreg {
+	ushort significand[4];
+	ushort exponent;
+	ushort padding[3];
+};
+
+struct _xmmreg {
+	ulong element[4];
+};
+
+struct _fpstate {
+	ulong	cw;
+	ulong	sw;
+	ulong	tag;
+	ulong	ipoff;
+	ulong	cssel;
+	ulong	dataoff;
+	ulong	datasel;
+	struct _fpreg	_st[8];
+	ushort	status;
+	ushort	magic;
+	ulong	_fxsr_env[6];
+	ulong	mxcsr;
+	ulong	reserved;
+	struct _fpxreg	_fxsr_st[8];
+	struct _xmmreg	_xmm[8];
+	ulong	padding1[44];
+	union {
+		ulong	padding2[12];
+		struct _fpx_sw_bytes sw_reserved;
+	};
+};
+struct sigcontext {
+	ushort gs, __gsh;
+	ushort fs, __fsh;
+	ushort es, __esh;
+	ushort ds, __dsh;
+	ulong edi;
+	ulong esi;
+	ulong ebp;
+	ulong esp;
+	ulong ebx;
+	ulong edx;
+	ulong ecx;
+	ulong eax;
+	ulong trapno;
+	ulong err;
+	ulong eip;
+	ushort cs, __csh;
+	ulong eflags;
+	ulong esp_at_signal;
+	ushort ss, __ssh;
+	struct _fpstate *fpstate;
+	ulong oldmask;
+	ulong cr2;
+};
+#elif defined(__x86_64__)
+
+struct _fpstate {
+	u16	cwd;
+	u16	swd;
+	u16	twd;
+	u16	fop;
+	u64	rip;
+	u64	rdp;
+	u32	mxcsr;
+	u32	mxcsr_mask;
+	u32	st_space[32];
+	u32	xmm_space[64];
+	u32	reserved2[12];
+	union {
+		u32	reserved3[12];
+		struct _fpx_sw_bytes sw_reserved;
+	};
+};
+struct sigcontext {
+	u64 r8;
+	u64 r9;
+	u64 r10;
+	u64 r11;
+	u64 r12;
+	u64 r13;
+	u64 r14;
+	u64 r15;
+	u64 rdi;
+	u64 rsi;
+	u64 rbp;
+	u64 rbx;
+	u64 rdx;
+	u64 rax;
+	u64 rcx;
+	u64 rsp;
+	u64 rip;
+	u64 eflags;
+	u16 cs;
+	u16 gs;
+	u16 fs;
+	u16 __pad0;
+	u64 err;
+	u64 trapno;
+	u64 oldmask;
+	u64 cr2;
+	struct _fpstate *fpstate;
+#ifdef __ILP32__
+	u32 __fpstate_pad;
+#endif
+	u64 reserved1[8];
+};
+
+#endif
+
+typedef union sigval {
+	int sival_int;
+	void *sival_ptr;
+} sigval_t;
+
+typedef struct sigevent {
+	sigval_t sigev_value;
+	int sigev_signo;
+	int sigev_notify;
+	union {
+		int _pad[SIGEV_PAD_SIZE];
+		int _tid;
+		struct {
+			void (*_function)(sigval_t);
+			void *_attribute;
+		} _sigev_thread;
+	} _sigev_un;
+} sigevent_t;
+
+typedef struct siginfo {
+	int si_signo;
+	int si_errno;
+	int si_code;
+	union {
+		int _pad[SI_PAD_SIZE];
+		struct {
+			pid_t _pid;
+			uid_t _uid;
+		} _kill;
+		struct {
+			timer_t _tid;
+			int _overrun;
+			char _pad[sizeof(uid_t) - sizeof(int)];
+			sigval_t _sigval;
+			int _sys_private;
+		} _timer;
+		struct {
+			pid_t _pid;
+			uid_t _uid;
+			sigval_t _sigval;
+		} _rt;
+		struct {
+			pid_t _pid;
+			uid_t _uid;
+			int _status;
+			clock_t _utime;
+			clock_t _stime;
+		} _sigchld;
+		struct {
+			void *_addr;
+#ifdef __ARCH_SI_TRAPNO
+			int _trapno;
+#endif
+			short _addr_lsb;
+		} _sigfault;
+		struct {
+			band_t _band;
+			int _fd;
+		} _sigpoll;
+		struct {
+			void *_call_addr;
+			int _syscall;
+			uint _arch;	
+		} _sigsys;
+	} _sifields;
+} __ARCH_SI_ATTRIBUTES siginfo_t;
+
+struct sockaddr_in {
+  sa_family_t sin_family;
+  u16 sin_port;
+  struct in_addr sin_addr;
+  u8 __pad[16 - sizeof(sa_family_t) - sizeof(u16) - sizeof(struct in_addr)];
+};
+
+struct sockaddr_in6 {
+ u16 sin6_family;
+ u16 sin6_port;
+ u32 sin6_flowinfo;
+ struct in6_addr sin6_addr;
+ u32 sin6_scope_id;
+};
+
+struct sockaddr_storage {
+ sa_family_t ss_family;
+ char __data[128 - sizeof(unsigned short)];
+} __attribute__ ((aligned((__alignof__ (struct sockaddr *)))));
+
+typedef struct sigaltstack {
+	void *ss_sp;
+	int ss_flags;
+	size_t ss_size;
+} stack_t;
+
+struct stat {
+	unsigned long	st_dev;	
+	unsigned long	st_ino;	
+	unsigned int	st_mode;
+	unsigned int	st_nlink;
+	unsigned int	st_uid;	
+	unsigned int	st_gid;	
+	unsigned long	st_rdev;
+	unsigned long	__pad1;
+	long		st_size;
+	int		st_blksize;
+	int		__pad2;
+	long		st_blocks;
+	long		st_atime;
+	unsigned long	st_atime_nsec;
+	long		st_mtime;
+	unsigned long	st_mtime_nsec;
+	long		st_ctime;
+	unsigned long	st_ctime_nsec;
+	unsigned int	__unused4;
+	unsigned int	__unused5;
+};
+
+struct stat64 {
+	unsigned long long st_dev;
+	unsigned long long st_ino;
+	unsigned int	st_mode;
+	unsigned int	st_nlink;
+	unsigned int	st_uid;	
+	unsigned int	st_gid;	
+	unsigned long long st_rdev;
+	unsigned long long __pad1;
+	long long	st_size;
+	int		st_blksize;
+	int		__pad2;
+	long long	st_blocks;
+	int		st_atime;
+	unsigned int	st_atime_nsec;
+	int		st_mtime;
+	unsigned int	st_mtime_nsec;
+	int		st_ctime;
+	unsigned int	st_ctime_nsec;
+	unsigned int	__unused4;
+	unsigned int	__unused5;
+};
+
+struct termio {
+	u16 c_iflag;	
+	u16 c_oflag;	
+	u16 c_cflag;	
+	u16 c_lflag;	
+	u8 c_line;	
+	u8 c_cc[NCC];
+};
+
+struct termios2 {
+	tcflag_t c_iflag;	
+	tcflag_t c_oflag;	
+	tcflag_t c_cflag;	
+	tcflag_t c_lflag;	
+	cc_t c_line;		
+	cc_t c_cc[NCCS];	
+	speed_t c_ispeed;	
+	speed_t c_ospeed;	
+};
+
+struct timespec{
+    time_t tv_sec;
+    long tv_nsec;
+};
+
+struct ucontext {
+	ulong uc_flags;
+	struct ucontext *uc_link;
+	stack_t uc_stack;
+	struct sigcontext uc_mcontext;
+	sigset_t uc_sigmask;
+};
+
+struct winsize {
+	u16 ws_row;
+	u16 ws_col;
+	u16 ws_xpixel;
+	u16 ws_ypixel;
+};
+
+typedef union address {
+    struct sockaddr { sa_family_t sa_family; char sa_data[14]; } sa;
+    struct sockaddr_in sa_in;
+    struct sockaddr_in6 sa_in6;
+} address_t;
+
+
+#endif
+
 enum{ //enums
 	AF_UNSPEC    = 0,
 	AF_UNIX	     = 1,
@@ -164,8 +817,6 @@ enum{ //enums
 	AF_X25       = 9,
 	AF_INET6     = 10,
 	AF_MAX       = 12,
-	
-	__ARCH_SI_PREAMBLE_SIZE = (3 * sizeof(int)),
 
 	CSIGNAL = 0x000000ff,
 	CLONE_VM = 0x00000100,
@@ -250,6 +901,84 @@ enum{ //enums
 	ENOANO = 55,
 	EBADRQC = 56,
 	EBADSLT = 57,
+	EDEADLOCK = EDEADLK,
+	EBFONT = 59,
+	ENOSTR = 60,
+	ENODATA = 61,
+	ETIME = 62,
+	ENOSR = 63,
+	ENONET = 64,
+	ENOPKG = 65,
+	EREMOTE = 66,
+	ENOLINK = 67,
+	EADV = 68,
+	ESRMNT = 69,
+	ECOMM = 70,
+	EPROTO = 71,
+	EMULTIHOP = 72,
+	EDOTDOT = 73,
+	EBADMSG = 74,
+	EOVERFLOW = 75,
+	ENOTUNIQ = 76,
+	EBADFD = 77,
+	EREMCHG = 78,
+	ELIBACC = 79,
+	ELIBBAD = 80,
+	ELIBSCN = 81,
+	ELIBMAX = 82,
+	ELIBEXEC = 83,
+	EILSEQ = 84,
+	ERESTART = 85,
+	ESTRPIPE = 86,
+	EUSERS = 87,
+	ENOTSOCK = 88,
+	EDESTADDRREQ = 89,
+	EMSGSIZE = 90,
+	EPROTOTYPE = 91,
+	ENOPROTOOPT = 92,
+	EPROTONOSUPPORT = 93,
+	ESOCKTNOSUPPORT = 94,
+	EOPNOTSUPP = 95,
+	ENOTSUP = EOPNOTSUPP,
+	EPFNOSUPPORT = 96,
+	EAFNOSUPPORT = 97,
+	EADDRINUSE = 98,
+	EADDRNOTAVAIL = 99,
+	ENETDOWN = 100,
+	ENETUNREACH = 101,
+	ENETRESET = 102,
+	ECONNABORTED = 103,
+	ECONNRESET = 104,
+	ENOBUFS = 105,
+	EISCONN = 106,
+	ENOTCONN = 107,
+	ESHUTDOWN = 108,
+	ETOOMANYREFS = 109,
+	ETIMEDOUT = 110,
+	ECONNREFUSED = 111,
+	EHOSTDOWN = 112,
+	EHOSTUNREACH = 113,
+	EALREADY = 114,
+	EINPROGRESS = 115,
+	ESTALE = 116,
+	EUCLEAN = 117,
+	ENOTNAM = 118,
+	ENAVAIL = 119,
+	EISNAM = 120,
+	EREMOTEIO = 121,
+	EDQUOT = 122,
+	ENOMEDIUM = 123,
+	EMEDIUMTYPE = 124,
+	ECANCELED = 125,
+	ENOKEY = 126,
+	EKEYEXPIRED = 127,
+	EKEYREVOKED = 128,
+	EKEYREJECTED = 129,
+	EOWNERDEAD = 130,
+	ENOTRECOVERABLE = 131,
+	ERFKILL = 132,
+	EHWPOISON = 133,
+	ELAST = 134,
 
 
 	F_DUPFD = 0,
@@ -356,9 +1085,9 @@ enum{ //enums
 	MAP_FIXED = 0x10,
 	MAP_ANONYMOUS = 0x20,
 #ifdef CONFIG_MMAP_ALLOW_UNINITIALIZED
-	MAP_UNINITIALIZED 0x4000000,
+	MAP_UNINITIALIZED = 0x4000000,
 #else
-	MAP_UNINITIALIZED 0x0,
+	MAP_UNINITIALIZED = 0x0,
 #endif
 	MS_ASYNC = 1,
 	MS_INVALIDATE = 2,
@@ -372,20 +1101,18 @@ enum{ //enums
 	MADV_DONTFORK = 10,
 	MADV_DOFORK = 11,
 	MADV_HWPOISON = 100,
-	MADV_SOFT_OFFLINE 101,
-	MADV_MERGEABLE   12,
-	MADV_UNMERGEABLE 13,
+	MADV_SOFT_OFFLINE = 101,
+	MADV_MERGEABLE = 12,
+	MADV_UNMERGEABLE = 13,
 	MADV_HUGEPAGE = 14,
 	MADV_NOHUGEPAGE = 15,
-	MADV_DONTDUMP   16,
+	MADV_DONTDUMP = 16,
 	MADV_DODUMP = 17,
 	MAP_FILE = 0,
 	MAP_HUGE_SHIFT = 26,
 	MAP_HUGE_MASK = 0x3f,
 
-	//termios
-	NCC = 8,
-
+	
 	O_RDONLY    = 00000000,
 	O_WRONLY    = 00000001,
 	O_RDWR      = 00000002,
@@ -485,10 +1212,6 @@ enum{ //enums
 
 	SHMLBA = PAGE_SIZE,
 
-	SI_MAX_SIZE = 128,
-	SI_PAD_SIZE = ((SI_MAX_SIZE - __ARCH_SI_PREAMBLE_SIZE) / sizeof(int)),
-
-	__ARCH_SI_PREAMBLE_SIZE = (3 * sizeof(int)),
 	__SI_KILL = 0,
 	__SI_TIMER = 0,
 	__SI_POLL = 0,
@@ -500,14 +1223,13 @@ enum{ //enums
 	SI_USER = 0,
 	SI_KERNEL = 0x80,
 	SI_QUEUE = -1,
-	SI_TIMER __SI_CODE(__SI_TIMER,-2),
-	SI_MESGQ __SI_CODE(__SI_MESGQ,-3),
+	SI_TIMER = -2,
+	SI_MESGQ = -3,
 	SI_ASYNCIO = -4,
 	SI_SIGIO = -5,
 	SI_TKILL = -6,
 	SI_DETHREAD = -7,
-	SI_FROMUSER(siptr) = ((siptr)->si_code <= 0),
-	SI_FROMKERNEL(siptr) = ((siptr)->si_code > 0),
+
 	ILL_ILLOPC = (__SI_FAULT|1),
 	ILL_ILLOPN = (__SI_FAULT|2),
 	ILL_ILLADR = (__SI_FAULT|3),
@@ -537,8 +1259,8 @@ enum{ //enums
 	NSIGBUS = 5,
 	TRAP_BRKPT = (__SI_FAULT|1),
 	TRAP_TRACE = (__SI_FAULT|2),
-	TRAP_BRANCH     (__SI_FAULT|3),
-	TRAP_HWBKPT     (__SI_FAULT|4),
+	TRAP_BRANCH = (__SI_FAULT|3),
+	TRAP_HWBKPT = (__SI_FAULT|4),
 	NSIGTRAP = 4,
 	CLD_EXITED = (__SI_CHLD|1),
 	CLD_KILLED = (__SI_CHLD|2),
@@ -556,13 +1278,11 @@ enum{ //enums
 	NSIGPOLL = 6,
 	SYS_SECCOMP = (__SI_SYS|1),
 	NSIGSYS = 1,
+
 	SIGEV_SIGNAL = 0,
 	SIGEV_NONE = 1,
 	SIGEV_THREAD = 2,
-	SIGEV_THREAD_ID 4,
-	__ARCH_SIGEV_PREAMBLE_SIZE = (sizeof(int) * 2 + sizeof(sigval_t)),
-	SIGEV_MAX_SIZE = 64,
-	SIGEV_PAD_SIZE = ((SIGEV_MAX_SIZE - __ARCH_SIGEV_PREAMBLE_SIZE) / sizeof(int)),
+	SIGEV_THREAD_ID = 4,
 
 	SOL_SOCKET = 1,
 	SO_DEBUG = 1,
@@ -608,7 +1328,7 @@ enum{ //enums
 	SCM_TIMESTAMPING = SO_TIMESTAMPING,
 	SO_PROTOCOL = 38,
 	SO_DOMAIN = 39,
-	SO_RXQ_OVFL             40,
+	SO_RXQ_OVFL = 40,
 	SO_WIFI_STATUS = 41,
 	SCM_WIFI_STATUS = SO_WIFI_STATUS,
 	SO_PEEK_OFF = 42,
@@ -713,8 +1433,8 @@ enum{ //enums
 	B9600 = 0000015,
 	B19200 = 0000016,
 	B38400 = 0000017,
-	EXTA B19200,
-	EXTB B38400,
+	EXTA = B19200,
+	EXTB = B38400,
 	CSIZE = 0000060,
 	CS5 = 0000000,
 	CS6 = 0000020,
@@ -832,9 +1552,9 @@ enum{ //enums
 	TIOCGLCKTRMIOS = 0x5456,
 	TIOCSLCKTRMIOS = 0x5457,
 	TIOCSERGSTRUCT = 0x5458,
-	TIOCSERGETLSR   0x5459,
-	TIOCSERGETMULTI 0x545A,
-	TIOCSERSETMULTI 0x545B,
+	TIOCSERGETLSR = 0x5459,
+	TIOCSERGETMULTI = 0x545A,
+	TIOCSERSETMULTI = 0x545B,
 	TIOCMIWAIT = 0x545C,
 	TIOCGICOUNT = 0x545D,
 	FIOQSIZE = 0x5460,
@@ -896,510 +1616,8 @@ enum{ //enums
 	XLF_EFI_HANDOVER_32 = 4,
 	XLF_EFI_HANDOVER_64 = 8,
 
-
 };
 
-#if 1 //macros
-#ifndef NULL
-#define NULL ((void *)0)
-#endif
-
-#define CHAR_BIT __CHAR_BIT__ //__CHAR_BIT__ is passed by the compiler
-#if __BITS_PER_LONG != 64
-#define IFBITSPERLONGNEQ64(...) __VA_ARGS__
-#define IFBITSPERLONGEQ64(...)
-#else
-#define IFBITSPERLONGNEQ64(...)
-#define IFBITSPERLONGEQ64(...) __VA_ARGS__
-#endif
-
-#define ROL(x,y) (x<<y)|(x>>((sizeof(x)*CHAR_BIT) -y))
-#define ROR(x,y) (x>>y)|(x<<((sizeof(x)*CHAR_BIT) -y))
-
-#define _IOC(d,t,n,sz) (((d) << _IOC_DIRSHIFT) | ((t) << _IOC_TYPESHIFT) | \
-	((n) << _IOC_NRSHIFT) | ((sz) << _IOC_SIZESHIFT))
-#define _IOC_TYPECHECK(t) (sizeof(t))
-#define _IO(type,nr)		_IOC(_IOC_NONE,(type),(nr),0)
-#define _IOR(type,nr,size)	_IOC(_IOC_READ,(type),(nr),(_IOC_TYPECHECK(size)))
-#define _IOW(type,nr,size)	_IOC(_IOC_WRITE,(type),(nr),(_IOC_TYPECHECK(size)))
-#define _IOWR(type,nr,size)	_IOC(_IOC_READ|_IOC_WRITE,(type),(nr),(_IOC_TYPECHECK(size)))
-#define _IOR_BAD(type,nr,size)	_IOC(_IOC_READ,(type),(nr),sizeof(size))
-#define _IOW_BAD(type,nr,size)	_IOC(_IOC_WRITE,(type),(nr),sizeof(size))
-#define _IOWR_BAD(type,nr,size)	_IOC(_IOC_READ|_IOC_WRITE,(type),(nr),sizeof(size))
-#define _IOC_DIR(nr)		(((nr) >> _IOC_DIRSHIFT) & _IOC_DIRMASK)
-#define _IOC_TYPE(nr)		(((nr) >> _IOC_TYPESHIFT) & _IOC_TYPEMASK)
-#define _IOC_NR(nr)		(((nr) >> _IOC_NRSHIFT) & _IOC_NRMASK)
-#define _IOC_SIZE(nr)		(((nr) >> _IOC_SIZESHIFT) & _IOC_SIZEMASK)
-#define IOC_IN		(_IOC_WRITE << _IOC_DIRSHIFT)
-#define IOC_OUT		(_IOC_READ << _IOC_DIRSHIFT)
-#define IOC_INOUT	((_IOC_WRITE|_IOC_READ) << _IOC_DIRSHIFT)
-#define IOCSIZE_MASK	(_IOC_SIZEMASK << _IOC_SIZESHIFT)
-#define IOCSIZE_SHIFT	(_IOC_SIZESHIFT)
-
-#if __STDC_VERSION__ >= 201103L
-#define noreturn _Noreturn
-#else
-#define noreturn __attribute__((noreturn))
-#endif
-
-#endif
-
-#if 1 //syscall macro stuff, TODO - handle multiple returns and extra clobs
-
-#define _P(x, y) x ## y
-#define P(x, y) _P(x, y)
-#define _H(x,...) x##_(__VA_ARGS__)
-#define	STACK_POINTER_(sp,...) sp
-#define	STACK_POINTER _H(STACK_POINTER,ARCH_DATA)
-#define	SYSCALL_(a,syscall,...) syscall
-#define	SYSCALL _H(SYSCALL,ARCH_DATA)
-#define	CALL_NUMBER_(a,b,cnum,...) cnum
-#define	CALL_NUMBER _H(CALL_NUMBER,ARCH_DATA)
-#define	RETURN_REGISTER_(a,b,c,ret,...) ret
-#define	RETURN_REGISTER  _H(RETURN_REGISTER,ARCH_DATA)
-#define	ARG1_(sp,sysc,cnum,ret,a1,...) a1
-#define	ARG1 _H(ARG1,ARCH_DATA)
-#define	ARG2_(sp,sysc,cnum,ret,a1,a2,...) a2
-#define	ARG2 _H(ARG2,ARCH_DATA)
-#define	ARG3_(sp,sysc,cnum,ret,a1,a2,a3,...) a3
-#define	ARG3 _H(ARG3,ARCH_DATA)
-#define	ARG4_(sp,sysc,cnum,ret,a1,a2,a3,a4,...) a4
-#define	ARG4 _H(ARG4,ARCH_DATA)
-#define	ARG5_(sp,sysc,cnum,ret,a1,a2,a3,a4,a5,...) a5
-#define	ARG5 _H(ARG5,ARCH_DATA)
-#define	ARG6_(sp,sysc,cnum,ret,a1,a2,a3,a4,a5,a6,...) a6
-#define	ARG6 _H(ARG6,ARCH_DATA)
-#define	ARG7_(sp,sysc,cnum,ret,a1,a2,a3,a4,a5,a6,a7,...) a7
-#define	ARG7 _H(ARG7,ARCH_DATA)
-#define	CLOB_(sp,sysc,cnum,ret,a1,a2,a3,a4,a5,a6,a7,...) __VA_ARGS__
-#define	CLOB _H(CLOB,ARCH_DATA)
-//TODO add option to clobber unused arguments of some platforms
-//ex. CLOB3_(sp,sysc,cnum,ret,a1,a2,a3,...) __VA_ARGS__
-
-#define SETREGISTER(var,reg,val) register long var __asm__(reg) = val
-#define SETRETURN_REGISTER register long ret __asm__(RETURN_REGISTER)
-#define SETREGISTERS0 SETRETURN_REGISTER;SETREGISTER(r0,CALL_NUMBER,cnum)
-#define SETREGISTERS1 SETREGISTERS0;SETREGISTER(r1,ARG1,a1)
-#define SETREGISTERS2 SETREGISTERS1;SETREGISTER(r2,ARG2,a2)
-#define SETREGISTERS3 SETREGISTERS2;SETREGISTER(r3,ARG3,a3)
-#define SETREGISTERS4 SETREGISTERS3;SETREGISTER(r4,ARG4,a4)
-#define SETREGISTERS5 SETREGISTERS4;SETREGISTER(r5,ARG5,a5)
-#define SETREGISTERS6 SETREGISTERS5;SETREGISTER(r6,ARG6,a6)
-#define SETREGISTERS7 SETREGISTERS6;SETREGISTER(r7,ARG7,a7)
-
-#define REGS0 "r"(r0)
-#define REGS1 REGS0,"r"(r1)
-#define REGS2 REGS1,"r"(r2)
-#define REGS3 REGS2,"r"(r3)
-#define REGS4 REGS3,"r"(r4)
-#define REGS5 REGS4,"r"(r5)
-#define REGS6 REGS5,"r"(r6)
-#define REGS7 REGS6,"r"(r7)
-
-#ifndef RET
-	#define RET "=r"(ret)
-#endif
-
-#define MKFNS(fn,...) MKFN_N(fn,##__VA_ARGS__,9,8,7,6,5,4,3,2,1,0)(__VA_ARGS__)
-#define MKFN_N(fn, n0, n1, n2, n3, n4, n5, n6, n7, n8, n9, n, ...) fn##n
-#define syscall(...) MKFNS(syscall,##__VA_ARGS__)
-#define syscall0(n) _syscall0(n)
-#define syscall1(n,a) _syscall1(n,(long)(a))
-#define syscall2(n,a,b) _syscall2(n,(long)(a),(long)(b))
-#define syscall3(n,a,b,c) _syscall3(n,(long)(a),(long)(b),(long)(c))
-#define syscall4(n,a,b,c,d) _syscall4(n,(long)(a),(long)(b),(long)(c),(long)(d))
-#define syscall5(n,a,b,c,d,e) _syscall5(n,(long)(a),(long)(b),(long)(c),(long)(d),(long)(e))
-#define syscall6(n,a,b,c,d,e,f) _syscall6(n,(long)(a),(long)(b),(long)(c),(long)(d),(long)(e),(long)(f))
-#define syscall7(n,a,b,c,d,e,f,g) _syscall7(n,(long)(a),(long)(b),(long)(c),(long)(d),(long)(e),(long)(f),(long)(g))
-#endif 
-
-#if 1 //typedefs 
-typedef unsigned char byte, cc_t, u8, __u8,  uint8, uint8_t;
-typedef unsigned short gid16_t, old_gid_t, old_uid_t, sa_family_t, u16, __u16, uid16_t, uint16, uint16_t, word;
-typedef unsigned int dword, mode_t, daddr_t, gid32_t, gid_t, old_dev_t, speed_t, tcflag_t, u32, __u32, ucs4_t, uid_t, uid_t, uid32_t, uint, uint32, uint32_t;
-typedef unsigned long long u64, __u64, uint64, uint64_t;
-
-typedef signed char int8, int8_t, s8, __s8;
-typedef signed short int16_t, s16, __s16;
-typedef signed int bool, clockid_t, int32_t,  ipc_pid_t, key_t, mqd_t, pid_t, s32, __s32, timer_t;
-typedef signed long long  loff_t, int64_t, s64, __s64;
-
-typedef char * caddr_t;
-typedef unsigned long ino_t, old_dev_t, size_t, ulong_t, ulong;
-typedef long  band_t, clock_t, long_t, off_t, ptrdiff_t, ssize_t, suseconds_t, time_t;
-
-
-struct exec{
-	u32 a_info;
-	u32 a_text;
-	u32 a_data;
-	u32 a_bss;	
-	u32 a_syms;
-	u32 a_entry;
-	u32 a_trsize;
-	u32 a_drsize;
-};
-#define N_TRSIZE(a) ((a).a_trsize)
-#define N_DRSIZE(a) ((a).a_drsize)
-#define N_SYMSIZE(a) ((a).a_syms)
-
-
-typedef struct {
- int val[2];
-}fsid_t;
-
-typedef struct {
- ulong fds_bits[1024 / (8 * sizeof(long))];
-} fd_set;
-
-struct flock {
-	short	l_type;
-	short	l_whence;
-	off_t	l_start;
-	off_t	l_len;
-	pid_t	l_pid;
-};
-
-struct flock64 {
-	short  l_type;
-	short  l_whence;
-	loff_t l_start;
-	loff_t l_len;
-	pid_t  l_pid;
-};
-
-struct f_owner_ex {
-	int	type;
-	pid_t	pid;
-};
-
-struct in_addr {
- u32 s_addr;
-};
-
-struct in6_addr {
-	union {
-		u8 u6_addr8[16];
-		u16 u6_addr16[8];
-		u32 u6_addr32[4];
-	} in6_u;
-};
-
-struct ipc64_perm {
-	key_t		key;
-	uid32_t	uid;
-	gid32_t	gid;
-	uid32_t	cuid;
-	gid32_t	cgid;
-	mode_t		mode;
-	u8		__pad1[4 - sizeof(mode_t)];
-	u16		seq;
-	u16		__pad2;
-	ulong		__unused1;
-	ulong		__unused2;
-};
-
-struct ktermios {
-	tcflag_t c_iflag;	
-	tcflag_t c_oflag;	
-	tcflag_t c_cflag;	
-	tcflag_t c_lflag;	
-	cc_t c_line;		
-	cc_t c_cc[NCCS];	
-	speed_t c_ispeed;	
-	speed_t c_ospeed;	
-};
-
-struct msqid64_ds {
-	struct ipc64_perm msg_perm;
-	time_t msg_stime;
-IFBITSPERLONGNEQ64(ulong	__unused1;)
-	time_t msg_rtime;
-IFBITSPERLONGNEQ64(ulong	__unused2;)
-	time_t msg_ctime;
-IFBITSPERLONGNEQ64(ulong	__unused3;)
-	ulong msg_cbytes;
-	ulong msg_qnum;
-	ulong msg_qbytes;
-	pid_t msg_lspid;
-	pid_t msg_lrpid;
-	ulong  __unused4;
-	ulong  __unused5;
-};
-
-struct pollfd {
-	int fd;
-	short events;
-	short revents;
-};
-
-struct semid64_ds {
-	struct ipc64_perm sem_perm;
-	__kernel_time_t	sem_otime;
-IFBITSPERLONGNEQ64(unsigned long	__unused1;)
-	__kernel_time_t	sem_ctime;
-IFBITSPERLONGNEQ64(unsigned long	__unused2;)
-	ulong	sem_nsems;
-	ulong	__unused3;
-	ulong	__unused4;
-};
-
-struct setup_data {
-	u64 next;
-	u32 type;
-	u32 len;
-	u8 data[0];
-};
-
-struct setup_header {
-	u8 setup_sects;
-	u16 root_flags;
-	u32 syssize;
-	u16 ram_size;
-	u16 vid_mode;
-	u16 root_dev;
-	u16 boot_flag;
-	u16 jump;
-	u32 header;
-	u16 version;
-	u32 realmode_swtch;
-	u16 start_sys;
-	u16 kernel_version;
-	u8 type_of_loader;
-	u8 loadflags;
-	u16 setup_move_size;
-	u32 code32_start;
-	u32 ramdisk_image;
-	u32 ramdisk_size;
-	u32 bootsect_kludge;
-	u16 heap_end_ptr;
-	u8 ext_loader_ver;
-	u8 ext_loader_type;
-	u32 cmd_line_ptr;
-	u32 initrd_addr_max;
-	u32 kernel_alignment;
-	u8 relocatable_kernel;
-	u8 min_alignment;
-	u16 xloadflags;
-	u32 cmdline_size;
-	u32 hardware_subarch;
-	u64 hardware_subarch_data;
-	u32 payload_offset;
-	u32 payload_length;
-	u64 setup_data;
-	u64 pref_address;
-	u32 init_size;
-	u32 handover_offset;
-} attribute((packed));
-
-struct shmid64_ds {
-	struct ipc64_perm	shm_perm;
-	size_t shm_segsz;
-	time_t shm_atime;
-IFBITSPERLONGNEQ64(ulong __unused1;)
-	time_t 	shm_dtime;
-IFBITSPERLONGNEQ64(ulong __unused2;)
-	__kernel_time_t		shm_ctime;
-IFBITSPERLONGNEQ64(ulong __unused3;)
-	pid_t shm_cpid;
-	pid_t shm_lpid;
-	ulong shm_nattch;
-	ulong __unused4;
-	ulong __unused5;
-};
-
-struct shminfo64 {
-	ulong shmmax;
-	ulong shmmin;
-	ulong shmmni;
-	ulong shmseg;
-	ulong shmall;
-	ulong __unused1;
-	ulong __unused2;
-	ulong __unused3;
-	ulong __unused4;
-};
-
-typedef struct sigevent {
-	sigval_t sigev_value;
-	int sigev_signo;
-	int sigev_notify;
-	union {
-		int _pad[SIGEV_PAD_SIZE];
-		int _tid;
-		struct {
-			void (*_function)(sigval_t);
-			void *_attribute;
-		} _sigev_thread;
-	} _sigev_un;
-} sigevent_t;
-
-typedef struct siginfo {
-	int si_signo;
-	int si_errno;
-	int si_code;
-	union {
-		int _pad[SI_PAD_SIZE];
-		struct {
-			pid_t _pid;
-			uid_t _uid;
-		} _kill;
-		struct {
-			timer_t _tid;
-			int _overrun;
-			char _pad[sizeof(uid_t) - sizeof(int)];
-			sigval_t _sigval;
-			int _sys_private;
-		} _timer;
-		struct {
-			pid_t _pid;
-			uid_t _uid;
-			sigval_t _sigval;
-		} _rt;
-		struct {
-			pid_t _pid;
-			uid_t _uid;
-			int _status;
-			clock_t _utime;
-			clock_t _stime;
-		} _sigchld;
-		struct {
-			void *_addr;
-#ifdef __ARCH_SI_TRAPNO
-			int _trapno;
-#endif
-			short _addr_lsb;
-		} _sigfault;
-		struct {
-			band_t _band;
-			int _fd;
-		} _sigpoll;
-		struct {
-			void *_call_addr;
-			int _syscall;
-			uint _arch;	
-		} _sigsys;
-	} _sifields;
-} __ARCH_SI_ATTRIBUTES siginfo_t;
-
-struct sockaddr_in {
-  sa_family_t sin_family;
-  u16 sin_port;
-  struct in_addr sin_addr;
-  u8 __pad[16 - sizeof(sa_family_t) - sizeof(u16) - sizeof(struct in_addr)];
-};
-
-struct sockaddr_in6 {
- u16 sin6_family;
- u16 sin6_port;
- u32 sin6_flowinfo;
- struct in6_addr sin6_addr;
- u32 sin6_scope_id;
-};
-
-struct sockaddr_storage {
- sa_family_t ss_family;
- char __data[128 - sizeof(unsigned short)];
-} __attribute__ ((aligned((__alignof__ (struct sockaddr *)))));
-
-struct stat {
-	unsigned long	st_dev;	
-	unsigned long	st_ino;	
-	unsigned int	st_mode;
-	unsigned int	st_nlink;
-	unsigned int	st_uid;	
-	unsigned int	st_gid;	
-	unsigned long	st_rdev;
-	unsigned long	__pad1;
-	long		st_size;
-	int		st_blksize;
-	int		__pad2;
-	long		st_blocks;
-	long		st_atime;
-	unsigned long	st_atime_nsec;
-	long		st_mtime;
-	unsigned long	st_mtime_nsec;
-	long		st_ctime;
-	unsigned long	st_ctime_nsec;
-	unsigned int	__unused4;
-	unsigned int	__unused5;
-};
-
-struct stat64 {
-	unsigned long long st_dev;
-	unsigned long long st_ino;
-	unsigned int	st_mode;
-	unsigned int	st_nlink;
-	unsigned int	st_uid;	
-	unsigned int	st_gid;	
-	unsigned long long st_rdev;
-	unsigned long long __pad1;
-	long long	st_size;
-	int		st_blksize;
-	int		__pad2;
-	long long	st_blocks;
-	int		st_atime;
-	unsigned int	st_atime_nsec;
-	int		st_mtime;
-	unsigned int	st_mtime_nsec;
-	int		st_ctime;
-	unsigned int	st_ctime_nsec;
-	unsigned int	__unused4;
-	unsigned int	__unused5;
-};
-
-struct termio {
-	u16 c_iflag;	
-	u16 c_oflag;	
-	u16 c_cflag;	
-	u16 c_lflag;	
-	u8 c_line;	
-	u8 c_cc[NCC];
-};
-
-struct termios2 {
-	tcflag_t c_iflag;	
-	tcflag_t c_oflag;	
-	tcflag_t c_cflag;	
-	tcflag_t c_lflag;	
-	cc_t c_line;		
-	cc_t c_cc[NCCS];	
-	speed_t c_ispeed;	
-	speed_t c_ospeed;	
-};
-
-struct timespec{
-    time_t tv_sec;
-    long tv_nsec;
-};
-
-struct ucontext {
-	ulong uc_flags;
-	struct ucontext *uc_link;
-	stack_t uc_stack;
-	struct sigcontext uc_mcontext;
-	sigset_t uc_sigmask;
-};
-
-struct winsize {
-	u16 ws_row;
-	u16 ws_col;
-	u16 ws_xpixel;
-	u16 ws_ypixel;
-};
-
-typedef union address {
-    struct sockaddr { sa_family_t sa_family; char sa_data[14]; } sa;
-    struct sockaddr_in sa_in;
-    struct sockaddr_in6 sa_in6;
-} address_t;
-
-typedef union sigval {
-	int sival_int;
-	void *sival_ptr;
-} sigval_t;
-
-#endif
 
 #ifndef NO_GLOBAL_VARS
 long errno; //technically should be int, but syscalls return long - avoids casts
@@ -2570,33 +2788,6 @@ static noreturn void exit(int a1){
 		#define __rdtscp __builtin_ia32_rdtscp
 	#endif
 
-//not documented
-	#if HAS(__builtin_ia32_rolqi)
-		#define rolb __builtin_ia32_rolqi
-	#else
-		static inline u8 rolb(const u8 x,const u8 y){return ROL(x,y);}
-	#endif
-
-//not documented
-	#if HAS(__builtin_ia32_rolhi)
-		#define rolw __builtin_ia32_rolhi
-	#else
-		static inline u16 rolw(const u16 x,const u8 y){return ROL(x,y);}
-	#endif
-
-//not documented
-	#if HAS(__builtin_ia32_rorqi)
-		#define rorb __builtin_ia32_rorqi
-	#else
-		static inline u8 rorb(const u8 x,const u8 y){return ROR(x,y);}
-	#endif
-
-//not documented
-	#if HAS(__builtin_ia32_rorhi)
-		#define rorw __builtin_ia32_rorhi
-	#else
-		static inline u16 rorw(const u16 x,const u8 y){return ROR(x,y);}
-	#endif
 
 //probably goes outside of arch
 //#define _lrotl(a,b)		__rolq((a), (b)) ... __rold((a), (b))
@@ -11858,7 +12049,7 @@ static inline int isdigit(int c){return (unsigned)c-'0' < 10;}
 static inline int isgraph(int c){return (unsigned)c-0x21 < 0x5e;}
 static inline int islower(int c){return (unsigned)c-'a' < 26;}
 static inline int isprint(int c){return (unsigned)c-0x20 < 0x5f;}
-static inline int ispunct(int c){return (isgraph(c) & !isalnum(c););}
+static inline int ispunct(int c){return (isgraph(c) & !isalnum(c));}
 static inline int isspace(int c){return ((unsigned)c-'\t' < 5)|(c == ' ');}
 static inline int isupper(int c){return (unsigned)c-'A' < 26;}
 static inline int isxdigit(int c){return ((unsigned)c-'0' < 10) | (((unsigned)c|32)-'a' < 6);}
@@ -11869,14 +12060,32 @@ static inline int toupper(int c){return c & 0x5f & (-((unsigned)c-'a'<26));}
 
 #if 1 //commonly used helpers not in libc
 
-static inline u8 rolw(u8 x,u8 y){return ROL(x,y);}
-static inline u8 rorw(u8 x,u8 y){return ROR(x,y);}
-static inline u16 rolw(u16 x,u8 y){return ROL(x,y);}
-static inline u16 rorw(u16 x,u8 y){return ROR(x,y);}
+
+#if HAS(__builtin_ia32_rolqi)
+	#define rolb __builtin_ia32_rolqi
+#else
+	static inline u8 rolb(const u8 x,const u8 y){return ROL(x,y);}
+#endif
+#if HAS(__builtin_ia32_rolhi)
+	#define rolw __builtin_ia32_rolhi
+#else
+	static inline u16 rolw(const u16 x,const u8 y){return ROL(x,y);}
+#endif
+#if HAS(__builtin_ia32_rorqi)
+	#define rorb __builtin_ia32_rorqi
+#else
+	static inline u8 rorb(const u8 x,const u8 y){return ROR(x,y);}
+#endif
+#if HAS(__builtin_ia32_rorhi)
+	#define rorw __builtin_ia32_rorhi
+#else
+	static inline u16 rorw(const u16 x,const u8 y){return ROR(x,y);}
+#endif
+
 static inline u32 rold(u32 x,u8 y){return ROL(x,y);}
 static inline u32 rord(u32 x,u8 y){return ROR(x,y);}
-static inline u64 rolq(u64 i,u8 j){return ROL(x,y);}
-static inline u64 rorq(u64 i,u8 j){return ROR(x,y);}
+static inline u64 rolq(u64 x,u8 y){return ROL(x,y);}
+static inline u64 rorq(u64 x,u8 y){return ROR(x,y);}
 #define __rolb rolb
 #define __rorb rorb
 #define __rolw rolw
@@ -11893,139 +12102,142 @@ static inline u64 rorq(u64 i,u8 j){return ROR(x,y);}
 
 #define sys_nerr (ELAST-1)  //BSD_COMPAT
 static const char strerrors[]=
-"Not an Error\0" \
-"Operation not permitted\0" \
-"No such file or directory\0" \
-"No such process\0" \
-"Interrupted system call\0" \
-"I/O error\0" \
-"No such device or address\0" \
-"Argument list too long\0" \
-"Exec format error\0" \
-"Bad file number\0" \
-"No child processes\0" \
-"Try again\0" \
-"Out of memory\0" \
-"Permission denied\0" \
-"Bad address\0" \
-"Block device required\0" \
-"Device or resource busy\0" \
-"File exists\0" \
-"Cross-device link\0" \
-"No such device\0" \
-"Not a directory\0" \
-"Is a directory\0" \
-"Invalid argument\0" \
-"File table overflow\0" \
-"Too many open files\0" \
-"Not a typewriter\0" \
-"Text file busy\0" \
-"File too large\0" \
-"No space left on device\0" \
-"Illegal seek\0" \
-"Read-only file system\0" \
-"Too many links\0" \
-"Broken pipe\0" \
-"Math argument out of domain of func\0" \
-"Math result not representable\0" \
-"Resource deadlock would occur\0" \
-"File name too long\0" \
-"No record locks available\0" \
-"Function not implemented\0" \
-"Directory not empty\0" \
-"Too many symbolic links encountered\0" \
-"Operation would block\0" \
-"No message of desired type\0" \
-"Identifier removed\0" \
-"Channel number out of range\0" \
-"Level 2 not synchronized\0" \
-"Level 3 halted\0" \
-"Level 3 reset\0" \
-"Link number out of range\0" \
-"Protocol driver not attached\0" \
-"No CSI structure available\0" \
-"Level 2 halted\0" \
-"Invalid exchange\0" \
-"Invalid request descriptor\0" \
-"Exchange full\0" \
-"No anode\0" \
-"Invalid request code\0" \
-"Invalid slot\0" \
-"Resource deadlock would occur\0" /*duplicate*/ \
-"Bad font file format\0" \
-"Device not a stream\0" \
-"No data available\0" \
-"Timer expired\0" \
-"Out of streams resources\0" \
-"Machine is not on the network\0" \
-"Package not installed\0" \
-"Object is remote\0" \
-"Link has been severed\0" \
-"Advertise error\0" \
-"Srmount error\0" \
-"Communication error on send\0" \
-"Protocol error\0" \
-"Multihop attempted\0" \
-"RFS specific error\0" \
-"Not a data message\0" \
-"Value too large for defined data type\0" \
-"Name not unique on network\0" \
-"File descriptor in bad state\0" \
-"Remote address changed\0" \
-"Can not access a needed shared library\0" \
-"Accessing a corrupted shared library\0" \
-".lib section in a.out corrupted\0" \
-"Attempting to link in too many shared libraries\0" \
-"Cannot exec a shared library directly\0" \
-"Illegal byte sequence\0" \
-"Interrupted system call should be restarted\0" \
-"Streams pipe error\0" \
-"Too many users\0" \
-"Socket operation on non-socket\0" \
-"Destination address required\0" \
-"Message too long\0" \
-"Protocol wrong type for socket\0" \
-"Protocol not available\0" \
-"Protocol not supported\0" \
-"Socket type not supported\0" \
-"Operation not supported on transport endpoint\0" \
-"Protocol family not supported\0" \
-"Address family not supported by protocol\0" \
-"Address already in use\0" \
-"Cannot assign requested address\0" \
-"Network is down\0" \
-"Network is unreachable\0" \
-"Network dropped connection because of reset\0" \
-"Software caused connection abort\0" \
-"Connection reset by peer\0" \
-"No buffer space available\0" \
-"Transport endpoint is already connected\0" \
-"Transport endpoint is not connected\0" \
-"Cannot send after transport endpoint shutdown\0" \
-"Too many references: cannot splice\0" \
-"Connection timed out\0" \
-"Connection refused\0" \
-"Host is down\0" \
-"No route to host\0" \
-"Operation already in progress\0" \
-"Operation now in progress\0" \
-"Stale file handle\0" \
-"Structure needs cleaning\0" \
-"Not a XENIX named type file\0" \
-"No XENIX semaphores available\0" \
-"Is a named type file\0" \
-"Remote I/O error\0" \
-"Quota exceeded\0" \
-"No medium found\0" \
-"Wrong medium type\0" \
-"Operation Canceled\0" \
-"Required key not available\0" \
-"Key has expired\0" \
-"Key has been revoked\0" \
-"Key was rejected by service\0" \
-"Owner died\0" \
-"State not recoverable\0";
-
+	"EPERM\0" \
+	"ENOENT\0" \
+	"ESRCH\0" \
+	"EINTR\0" \
+	"EIO\0" \
+	"ENXIO\0" \
+	"E2BIG\0" \
+	"ENOEXEC\0" \
+	"EBADF\0" \
+	"ECHILD\0" \
+	"EAGAIN\0" \
+	"ENOMEM\0" \
+	"EACCES\0" \
+	"EFAULT\0" \
+	"ENOTBLK\0" \
+	"EBUSY\0" \
+	"EEXIST\0" \
+	"EXDEV\0" \
+	"ENODEV\0" \
+	"ENOTDIR\0" \
+	"EISDIR\0" \
+	"EINVAL\0" \
+	"ENFILE\0" \
+	"EMFILE\0" \
+	"ENOTTY\0" \
+	"ETXTBSY\0" \
+	"EFBIG\0" \
+	"ENOSPC\0" \
+	"ESPIPE\0" \
+	"EROFS\0" \
+	"EMLINK\0" \
+	"EPIPE\0" \
+	"EDOM\0" \
+	"ERANGE\0" \
+	"EDEADLK\0" \
+	"ENAMETOOLONG\0" \
+	"ENOLCK\0" \
+	"ENOSYS\0" \
+	"ENOTEMPTY\0" \
+	"ELOOP\0" \
+	"EWOULDBLOCK\0" \
+	"ENOMSG\0" \
+	"EIDRM\0" \
+	"ECHRNG\0" \
+	"EL2NSYNC\0" \
+	"EL3HLT\0" \
+	"EL3RST\0" \
+	"ELNRNG\0" \
+	"EUNATCH\0" \
+	"ENOCSI\0" \
+	"EL2HLT\0" \
+	"EBADE\0" \
+	"EBADR\0" \
+	"EXFULL\0" \
+	"ENOANO\0" \
+	"EBADRQC\0" \
+	"EBADSLT\0" \
+	"EDEADLOCK\0" \
+	"EBFONT\0" \
+	"ENOSTR\0" \
+	"ENODATA\0" \
+	"ETIME\0" \
+	"ENOSR\0" \
+	"ENONET\0" \
+	"ENOPKG\0" \
+	"EREMOTE\0" \
+	"ENOLINK\0" \
+	"EADV\0" \
+	"ESRMNT\0" \
+	"ECOMM\0" \
+	"EPROTO\0" \
+	"EMULTIHOP\0" \
+	"EDOTDOT\0" \
+	"EBADMSG\0" \
+	"EOVERFLOW\0" \
+	"ENOTUNIQ\0" \
+	"EBADFD\0" \
+	"EREMCHG\0" \
+	"ELIBACC\0" \
+	"ELIBBAD\0" \
+	"ELIBSCN\0" \
+	"ELIBMAX\0" \
+	"ELIBEXEC\0" \
+	"EILSEQ\0" \
+	"ERESTART\0" \
+	"ESTRPIPE\0" \
+	"EUSERS\0" \
+	"ENOTSOCK\0" \
+	"EDESTADDRREQ\0" \
+	"EMSGSIZE\0" \
+	"EPROTOTYPE\0" \
+	"ENOPROTOOPT\0" \
+	"EPROTONOSUPPORT\0" \
+	"ESOCKTNOSUPPORT\0" \
+	"EOPNOTSUPP\0" \
+	"ENOTSUP\0" \
+	"EPFNOSUPPORT\0" \
+	"EAFNOSUPPORT\0" \
+	"EADDRINUSE\0" \
+	"EADDRNOTAVAIL\0" \
+	"ENETDOWN\0" \
+	"ENETUNREACH\0" \
+	"ENETRESET\0" \
+	"ECONNABORTED\0" \
+	"ECONNRESET\0" \
+	"ENOBUFS\0" \
+	"EISCONN\0" \
+	"ENOTCONN\0" \
+	"ESHUTDOWN\0" \
+	"ETOOMANYREFS\0" \
+	"ETIMEDOUT\0" \
+	"ECONNREFUSED\0" \
+	"EHOSTDOWN\0" \
+	"EHOSTUNREACH\0" \
+	"EALREADY\0" \
+	"EINPROGRESS\0" \
+	"ESTALE\0" \
+	"EUCLEAN\0" \
+	"ENOTNAM\0" \
+	"ENAVAIL\0" \
+	"EISNAM\0" \
+	"EREMOTEIO\0" \
+	"EDQUOT\0" \
+	"ENOMEDIUM\0" \
+	"EMEDIUMTYPE\0" \
+	"ECANCELED\0" \
+	"ENOKEY\0" \
+	"EKEYEXPIRED\0" \
+	"EKEYREVOKED\0" \
+	"EKEYREJECTED\0" \
+	"EOWNERDEAD\0" \
+	"ENOTRECOVERABLE\0" \
+	"ERFKILL\0" \
+	"EHWPOISON\0" \
+	"ELAST";
+	
 static inline const char *getnthstring(const char *s,ulong n){while(n--)while(*s++);return s;}
 static inline const char *strerror(ulong e){return getnthstring(strerrors,(e<ELAST)?e:0);}
 
@@ -12064,6 +12276,10 @@ static inline char *strstr(const char *haystack, const char *needle){
  * mess with this.
  **/
 struct stack {long arr[8];};
+static inline int _main();
+#ifdef INLINEMAIN
+#define main(...) DUMMYFUNC(); static inline int _main(__VA_ARGS_)
+#endif
 int main(); //if we change this to inline mymain(), we can inline main
 void noreturn __attribute__ ((visibility ("protected")))
 _start(struct stack stack){
@@ -12073,7 +12289,11 @@ _start(struct stack stack){
 	char **environ;
 #endif
 	environ = argv+argc;
+#ifdef INLINEMAIN
+	(void)exit(_main(argc,argv,environ) );
+#else
 	(void)exit(main(argc,argv,environ) );
+#endif
 	__builtin_unreachable(); //or for(;;); to shut up gcc
 }
 

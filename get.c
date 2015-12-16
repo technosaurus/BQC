@@ -75,7 +75,7 @@ GETEND:
    close(s);
 }
 
-static inline int _main(int argc, char **argv){
+int main(int argc, char **argv){
   if (argc<3){
     write(2,"usage:\n\tget host /path/file\n",28);
     return 1;
