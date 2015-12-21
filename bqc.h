@@ -12308,13 +12308,14 @@ static inline int _main();
 #endif
 int main(); //if we change this to inline mymain(), we can inline main
 void noreturn __attribute__ ((visibility ("protected")))
-_start(struct stack stack){
-	long argc = *(((long*)(&stack))-1);
-	char **argv = (char**)&stack;
+_start(void){
+	register long *sp __asm__( STACK_POINTER );
+	long argc = *sp;
+	char **argv = (char**)sp+1;
 #ifdef NO_GLOBAL_VARS
 	char **environ;
 #endif
-	environ = argv+argc;
+	environ = (char**)sp+1+argc;
 #ifdef INLINEMAIN
 	(void)exit(_main(argc,argv,environ) );
 #else
