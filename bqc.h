@@ -1,5 +1,12 @@
 #ifndef BQC_H
 #define BQC_H
+#ifdef  __GNUC__
+#define PASTE3_(x,y,z) x##y##z
+#define PASTE3(x,y,z) PASTE3_(x,y,z)
+#define GCCVER PASTE3(__GNUC__,__GNUC_MINOR__,__GNUC_PATCHLEVEL__)
+#endif
+
+
 #if 1 //architecture ports
 
 #include <linux/unistd.h>
@@ -284,7 +291,7 @@
 #if 1 //typedefs 
 typedef unsigned char byte, cc_t, u8, __u8,  uint8, uint8_t;
 typedef unsigned short gid16_t, old_gid_t, old_uid_t, sa_family_t, u16, __u16, uid16_t, uint16, uint16_t, word;
-typedef unsigned int dword, mode_t, daddr_t, gid32_t, gid_t, old_dev_t, speed_t, tcflag_t, u32, __u32, ucs4_t, uid_t, uid_t, uid32_t, uint, uint32, uint32_t;
+typedef unsigned int dword, mode_t, daddr_t, gid32_t, gid_t, old_dev_t, speed_t, tcflag_t, u32, __u32, ucs4_t, uid_t, uid32_t, uint, uint32, uint32_t;
 typedef unsigned long long u64, __u64, uint64, uint64_t;
 
 typedef signed char int8, int8_t, s8, __s8;
@@ -612,6 +619,31 @@ struct sigcontext {
 	u32 __fpstate_pad;
 #endif
 	u64 reserved1[8];
+};
+
+#elif defined( __arm__)
+struct sigcontext {
+	unsigned long trap_no;
+	unsigned long error_code;
+	unsigned long oldmask;
+	unsigned long arm_r0;
+	unsigned long arm_r1;
+	unsigned long arm_r2;
+	unsigned long arm_r3;
+	unsigned long arm_r4;
+	unsigned long arm_r5;
+	unsigned long arm_r6;
+	unsigned long arm_r7;
+	unsigned long arm_r8;
+	unsigned long arm_r9;
+	unsigned long arm_r10;
+	unsigned long arm_fp;
+	unsigned long arm_ip;
+	unsigned long arm_sp;
+	unsigned long arm_lr;
+	unsigned long arm_pc;
+	unsigned long arm_cpsr;
+	unsigned long fault_address;
 };
 
 #endif
@@ -1672,6 +1704,10 @@ static inline long _syscall7(long cnum,long a1,long a2,long a3,long a4,long a5,l
 	return ret;
 }
 
+#if defined (__GNUC__) && (GCCVER < 450)
+static inline void __builtin_unreachable(void){for(;;);}
+#endif
+
 //exit gets its own code because there is no return
 static noreturn void exit(int a1){
 	SETREGISTER(r0,CALL_NUMBER,__NR_exit);
@@ -1706,10 +1742,9 @@ static noreturn void exit(int a1){
  * vsscanf, iswalnum, iswalpha, iswcntrl, iswdigit, iswgraph, iswlower,
  * iswprint, iswpunct, iswspace, iswupper, iswxdigit, towlower, towupper
  **/
-
 #ifdef __clang__
 	#define HAS(...) __has_builtin(__VA_ARGS__)
-#elif defined __GNUC__ //assume gcc ... (where the list came from)
+#elif  GCCVER > 470 //assume gcc ... (where the list came from)
 	#define HAS(...) 1
 #else
 	#define HAS(...) 0
@@ -2200,20 +2235,11 @@ static noreturn void exit(int a1){
 #if HAS(__builtin_memchr)
 	#define memchr __builtin_memchr
 #endif
-#if HAS(__builtin_memcmp)
-	#define memcmp __builtin_memcmp
-#endif
-#if HAS(__builtin_memcpy)
-	#define memcpy __builtin_memcpy
-#endif
 #if HAS(__builtin___memcpy_chk)
 	#define __memcpy_chk __builtin___memcpy_chk
 #endif
 #if HAS(__builtin_mempcpy)
 	#define mempcpy __builtin_mempcpy
-#endif
-#if HAS(__builtin_memset)
-	#define memset __builtin_memset
 #endif
 #if HAS(__builtin_modf)
 	#define modf __builtin_modf
@@ -2559,9 +2585,6 @@ static noreturn void exit(int a1){
 #endif
 #if HAS(__builtin_umul_overflow)
 	#define umul_overflow __builtin_umul_overflow
-#endif
-#if HAS(__builtin_unreachable)
-	#define unreachable __builtin_unreachable
 #endif
 #if HAS(__builtin_usubll_overflow)
 	#define usubll_overflow __builtin_usubll_overflow
@@ -12082,6 +12105,7 @@ static inline int toupper(int c){return c & 0x5f & (-((unsigned)c-'a'<26));}
 	static inline u16 rorw(const u16 x,const u8 y){return ROR(x,y);}
 #endif
 
+static inline u16 bswap16(u16 x){return x>>8|x<<8;}
 static inline u32 rold(u32 x,u8 y){return ROL(x,y);}
 static inline u32 rord(u32 x,u8 y){return ROR(x,y);}
 static inline u64 rolq(u64 x,u8 y){return ROL(x,y);}
@@ -12243,7 +12267,9 @@ static inline const char *strerror(ulong e){return getnthstring(strerrors,(e<ELA
 
 static inline int strncmp(const char *s1, const char *s2, size_t len);
 static inline char *strstr(const char *haystack, const char *needle);
-
+static inline size_t strlen(const char *s){size_t i=0; while(s[i])++i;return i;}
+void *memset(void *sp, int c, size_t n){u8 *s=sp;while (n--)*s++=c;return sp;}
+void *memcpy(void *dp, const void *sp, size_t n){u8 *d=dp;const u8 *s=sp;while(n--)*d++=*s++;return dp;}
 static inline int strncmp(const char *s1, const char *s2, size_t len){
 	while (*s1 && --len && *s1==*s2){++s1;++s2;}
 	return *s2-*s1;
