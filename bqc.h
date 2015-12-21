@@ -1705,7 +1705,7 @@ static inline long _syscall7(long cnum,long a1,long a2,long a3,long a4,long a5,l
 }
 
 #if defined (__GNUC__) && (GCCVER < 450)
-static inline void __builtin_unreachable(void){for(;;);}
+#define __builtin_unreachable() for(;;)
 #endif
 
 //exit gets its own code because there is no return
