@@ -412,9 +412,9 @@ struct pollfd {
 struct semid64_ds {
 	struct ipc64_perm sem_perm;
 	time_t	sem_otime;
-IFBITSPERLONGNEQ64(unsigned long	__unused1;)
+IFBITSPERLONGNEQ64(ulong	__unused1;)
 	time_t	sem_ctime;
-IFBITSPERLONGNEQ64(unsigned long	__unused2;)
+IFBITSPERLONGNEQ64(ulong	__unused2;)
 	ulong	sem_nsems;
 	ulong	__unused3;
 	ulong	__unused4;
@@ -12288,20 +12288,20 @@ static inline char *strstr(const char *haystack, const char *needle){
 
 
 
-/** HACK alert:
+/** Note:
  * linux-elf passes all arguments to _start() on the stack regardless of
- * the system's actuall calling convention, so you can't just set up
+ * the system's actual calling convention, so you can't just set up
  * _start(argc, argv, ...) because you will just get some random data
  * in a register.  I tried using explicit named register variables, to
  * access the stack pointer directly; however optimizations sometimes
  * move the stack pointer in the prolog and break it ... which is also
  * why we can't just set up a variable at the very beginning of the 
- * function and refer to its address.  Which leads me to this hack.
- * Since large structs are always passed on the stack, we can use a
- * fake large struct as the sole parameter.  The compiler doesn't
- * mess with this.
+ * function and refer to its address.  Which lead me to a hack using.
+ * fake large struct parameters since they always pass via stack. That
+ * didn't work for arm, so I am back to using named reg vars, so
+ * for now require -Os so -O2/-03 don't break stuff.
+ * Todo: check -mpush-args or -mno-accumulate outgoing args
  **/
-struct stack {long arr[8];};
 static inline int _main();
 #ifdef INLINEMAIN
 #define main(...) DUMMYFUNC(); static inline int _main(__VA_ARGS_)
