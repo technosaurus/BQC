@@ -1039,10 +1039,10 @@
 #endif 
 
 #if 1 //typedefs 
-typedef unsigned char byte, cc_t, u8, __u8,  uint8, uint8_t;
-typedef unsigned short gid16_t, old_gid_t, old_uid_t, sa_family_t, u16, __u16, uid16_t, uint16, uint16_t, word;
-typedef unsigned int dword, mode_t, daddr_t, gid32_t, gid_t, old_dev_t, speed_t, tcflag_t, u32, __u32, ucs4_t, uid_t, uid32_t, uint, uint32, uint32_t;
-typedef unsigned long long u64, __u64, uint64, uint64_t;
+typedef unsigned char byte, cc_t, __mmask8, u8, __u8,  uint8, uint8_t;
+typedef unsigned short gid16_t, __mmask16, old_gid_t, old_uid_t, sa_family_t, u16, __u16, uid16_t, uint16, uint16_t, word;
+typedef unsigned int dword, __mmask32, mode_t, daddr_t, gid32_t, gid_t, old_dev_t, speed_t, tcflag_t, u32, __u32, ucs4_t, uid_t, uid32_t, uint, uint32, uint32_t;
+typedef unsigned long long __mmask64, u64, __u64, uint64, uint64_t;
 
 typedef signed char int8, int8_t, s8, __s8;
 typedef signed short int16_t, s16, __s16;
@@ -1052,6 +1052,48 @@ typedef signed long long  loff_t, int64_t, s64, __s64;
 typedef char * caddr_t;
 typedef unsigned long ino_t, size_t, sigset_t, ulong, ulong_t;
 typedef long  band_t, clock_t, long_t, off_t, ptrdiff_t, ssize_t, suseconds_t, time_t;
+
+typedef char __v8qi __attribute__((__vector_size__(8)));
+typedef char __v16qi __attribute__((__vector_size__(16)));
+typedef char __v32qi __attribute__ ((__vector_size__ (32)));
+typedef char __v64qi __attribute__ ((__vector_size__ (64)));
+typedef signed char __v16qs __attribute__((__vector_size__(16)));
+typedef signed char __v32qs __attribute__((__vector_size__(32)));
+
+typedef short __v4hi __attribute__((__vector_size__(8)));
+typedef short __v8hi __attribute__((__vector_size__(16)));
+typedef short __v16hi __attribute__ ((__vector_size__ (32)));
+typedef short __v32hi __attribute__ ((__vector_size__ (64)));
+
+typedef int __v2si __attribute__((__vector_size__(8)));
+typedef int __v4si __attribute__((__vector_size__(16)));
+typedef int __v8si __attribute__ ((__vector_size__ (32)));
+typedef int __v16si __attribute__((__vector_size__(64)));
+
+typedef long long __m64 __attribute__((__vector_size__(8)));
+typedef long long __m128i __attribute__((__vector_size__(16)));
+typedef long long __m256i __attribute__((__vector_size__(32)));
+typedef long long __m512i __attribute__((__vector_size__(64)));
+typedef long long __v2di __attribute__ ((__vector_size__ (16)));
+typedef long long __v4di __attribute__ ((__vector_size__ (32)));
+typedef long long __v8di __attribute__((__vector_size__(64)));
+
+typedef float __v2sf __attribute__((__vector_size__(8)));
+typedef float __v4sf __attribute__((__vector_size__(16)));
+typedef float __v8sf __attribute__ ((__vector_size__ (32)));
+typedef float __v16sf __attribute__((__vector_size__(64)));
+typedef float __mm_loadh_pi_v2f32 __attribute__((__vector_size__(8)));
+typedef float __m128 __attribute__((__vector_size__(16)));
+typedef float __m256 __attribute__ ((__vector_size__ (32)));
+typedef float __m512 __attribute__((__vector_size__(64)));
+
+typedef double __m128d __attribute__((__vector_size__(16)));
+typedef double __m256d __attribute__((__vector_size__(32)));
+typedef double __m512d __attribute__((__vector_size__(64)));
+typedef double __v2df __attribute__ ((__vector_size__ (16)));
+typedef double __v4df __attribute__ ((__vector_size__ (32)));
+typedef double __v8df __attribute__((__vector_size__(64)));
+
 #endif
 #if 1 //structs
 struct exec{
