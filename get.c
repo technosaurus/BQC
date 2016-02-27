@@ -55,15 +55,14 @@ static inline void get(const char *host, const char *path){
    struct sockaddr_in dest = {
       .sin_family=AF_INET,.sin_port=htons(80),.sin_addr.s_addr=query_ip(host)
    };
-   const char g[]="GET ",h1[]=" HTTP/1.",h2[]="0\nHost: ",nl[]="\n\n",rnl[]="\r\n\r\n";
    int len=0, sz=sizeof(dest), s=socket(AF_INET,SOCK_STREAM,IPPROTO_TCP);
    if(( connect(s, &dest,sz)) != 0 ) goto GETEND;
-   strcpyALL(buf,len,g,path,h1,h2,host,nl);
+   strcpyALL(buf,len,"GET ",path," HTTP/1.0\nHost: ",host,"\n\n");
    if((write(s, buf, len))<0) goto GETEND;
    len=read(s,buf,sizeof(buf));
    if (len<0) goto GETEND;
    else{
-      char *bp=strstr(buf,rnl);
+      char *bp=strstr(buf,"\r\n\r\n");
       if (bp==NULL) goto GETEND;
       bp+=4;
       len-=(bp-buf);
