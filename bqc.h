@@ -1039,8 +1039,8 @@
 #endif 
 
 #if 1 //typedefs 
-typedef unsigned char byte, cc_t, __mmask8, u8, __u8,  uint8, uint8_t;
-typedef unsigned short gid16_t, __mmask16, old_gid_t, old_uid_t, sa_family_t, u16, __u16, uid16_t, uint16, uint16_t, word;
+typedef unsigned char byte, cc_t, __mmask8, u8, __u8, uchar, uint8, uint8_t;
+typedef unsigned short gid16_t, __mmask16, old_gid_t, old_uid_t, sa_family_t, u16, __u16, uid16_t, uint16, uint16_t, ushort, word;
 typedef unsigned int dword, __mmask32, mode_t, daddr_t, gid32_t, gid_t, old_dev_t, speed_t, tcflag_t, u32, __u32, ucs4_t, uid_t, uid32_t, uint, uint32, uint32_t;
 typedef unsigned long long __mmask64, u64, __u64, uint64, uint64_t;
 
