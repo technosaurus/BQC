@@ -939,6 +939,11 @@
 #define __ARCH_SI_ATTRIBUTES
 #endif
 
+#define get_avphys_pages() sysconf(_SC_AVPHYS_PAGES)
+#define get_nprocs() sysconf(_SC_NPROCESSORS_ONLN)
+#define get_nprocs_conf() sysconf(_SC_NPROCESSORS_CONF)
+#define get_phys_pages() sysconf(_SC_PHYS_PAGES)
+
 #define ROL(x,y) (x<<y)|(x>>((sizeof(x)*CHAR_BIT) -y))
 #define ROR(x,y) (x>>y)|(x<<((sizeof(x)*CHAR_BIT) -y))
 
