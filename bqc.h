@@ -2862,13 +2862,13 @@ static inline int isdigit(int c){return (unsigned)c-'0' < 10;}
 static inline int isgraph(int c){return (unsigned)c-0x21 < 0x5e;}
 static inline int islower(int c){return (unsigned)c-'a' < 26;}
 static inline int isprint(int c){return (unsigned)c-0x20 < 0x5f;}
-static inline int ispunct(int c){return (isgraph(c) & !isalnum(c));}
+static inline int ispunct(int c){unsigned y=(unsigned)c;return ( ( y-'!' < 95 ) & ( ((y|32)-'a' > 25) | (y-'0' > 9) ) );}
 static inline int isspace(int c){return ((unsigned)c-'\t' < 5)|(c == ' ');}
 static inline int isupper(int c){return (unsigned)c-'A' < 26;}
 static inline int isxdigit(int c){return ((unsigned)c-'0' < 10) | (((unsigned)c|32)-'a' < 6);}
-static inline int tolower(int c){return c | ((isupper(c))<<5);}
-static inline int toupper(int c){return c  & ~(((unsigned)c-'a' < 26)<<5);}
-
+static inline int toascii(int c){return c & 0x7f;}
+static inline int tolower(int c){return c | ( ((unsigned)c-'A' < 26)<<5 );}
+static inline int toupper(int c){return c & ~(((unsigned)c-'a' < 26)<<5);}
 #endif
 #if 1 //commonly used helpers not in libc
 
@@ -2911,30 +2911,21 @@ static inline u64 rorq(u64 x,u8 y){return ROR(x,y);}
 #if 1 //strings section
 
 #define sys_nerr (ELAST-1)  //BSD_COMPAT
+//This method of string storage saves 7 bytes per string with 64bit pointers... speed isn't usually and issue for error strings anyhow.
 static const char strerrors[]= "PERM\0NOENT\0SRCH\0INTR\0IO\0NXIO\02BIG\0NOEXEC\0BADF\0CHILD\0AGAIN\0NOMEM\0ACCES\0FAULT\0NOTBLK\0BUSY\0EXIST\0XDEV\0NODEV\0NOTDIR\0ISDIR\0INVAL\0NFILE\0MFILE\0NOTTY\0TXTBSY\0FBIG\0NOSPC\0SPIPE\0ROFS\0MLINK\0PIPE\0DOM\0RANGE\0DEADLK\0NAMETOOLONG\0NOLCK\0NOSYS\0NOTEMPTY\0LOOP\0"/*EWOULDBLOCK*/"\0NOMSG\0IDRM\0CHRNG\0L2NSYNC\0L3HLT\0L3RST\0LNRNG\0UNATCH\0NOCSI\0L2HLT\0BADE\0BADR\0XFULL\0NOANO\0BADRQC\0BADSLT\0"/*EDEADLOCK*/"\0BFONT\0NOSTR\0NODATA\0TIME\0NOSR\0NONET\0NOPKG\0REMOTE\0NOLINK\0ADV\0SRMNT\0COMM\0PROTO\0MULTIHOP\0DOTDOT\0BADMSG\0OVERFLOW\0NOTUNIQ\0BADFD\0REMCHG\0LIBACC\0LIBBAD\0LIBSCN\0LIBMAX\0LIBEXEC\0ILSEQ\0RESTART\0STRPIPE\0USERS\0NOTSOCK\0DESTADDRREQ\0MSGSIZE\0PROTOTYPE\0NOPROTOOPT\0PROTONOSUPPORT\0SOCKTNOSUPPORT\0OPNOTSUPP\0"/*ENOTSUP*/"\0PFNOSUPPORT\0AFNOSUPPORT\0ADDRINUSE\0ADDRNOTAVAIL\0NETDOWN\0NETUNREACH\0NETRESET\0CONNABORTED\0CONNRESET\0NOBUFS\0ISCONN\0NOTCONN\0SHUTDOWN\0TOOMANYREFS\0TIMEDOUT\0CONNREFUSED\0HOSTDOWN\0HOSTUNREACH\0ALREADY\0INPROGRESS\0STALE\0UCLEAN\0NOTNAM\0NAVAIL\0ISNAM\0REMOTEIO\0DQUOT\0NOMEDIUM\0MEDIUMTYPE\0CANCELED\0NOKEY\0KEYEXPIRED\0KEYREVOKED\0KEYREJECTED\0OWNERDEAD\0NOTRECOVERABLE\0RFKILL\0HWPOISON";
-	
-static inline const char *getnthstring(const char *s,size_t n){while(n--)while(*s++);return s;}
-static inline const char *strerror(size_t e){return getnthstring(strerrors,(e<ELAST)?e:0);}
 
-static inline int strncmp(const char *s1, const char *s2, size_t len);
-static inline char *strstr(const char *haystack, const char *needle);
-static inline size_t strlen(const char *s){size_t i=0; while(s[i])++i;return i;}
+static inline const char *getnthstring(const char *s,size_t n){while(n--)while(*s++);return s;}
 void *memset(void *sp, int c, size_t n){u8 *s=sp;while (n--)*s++=c;return sp;}
 void *memcpy(void *dp, const void *sp, size_t n){u8 *d=dp;const u8 *s=sp;while(n--)*d++=*s++;return dp;}
-static inline int strncmp(const char *s1, const char *s2, size_t len){
-	while (*s1 && --len && *s1==*s2){++s1;++s2;}
-	return *s2-*s1;
-}
-
-static inline char *strstr(const char *haystack, const char *needle){
-	const char *hp=haystack;
-	size_t len=strlen(needle);
-	while(*hp){
-		if(*hp==*needle && !strncmp(hp,needle,len)) return (char *)hp;
-		else hp++;
-	}
-	return NULL;
-}
+static inline char * strchr(char *s,int c){do if (*s==c) return s; while (*s++);return NULL;}
+static inline char * strchrnul(char *s,int c){do if (*s==c) break; while (*s++);return s;}
+static inline char * strcpy(char *d, const char *s){char *r=d;do *d++=*s++; while(*s);return r;}
+static inline const char *strerror(size_t e){return getnthstring(strerrors,(e<ELAST)?e:0);}
+static inline char * strrchr(const char *s,int c){char *r=NULL;do if (*s==c) r=(char*)s; while(*s++);return r;}
+static inline size_t strlen(const char *s){size_t i=0; while(s[i])++i;return i;}
+static inline int strncmp(const char *s1, const char *s2, size_t len){while (*s1 && --len && *s1==*s2){++s1;++s2;}return *s2-*s1;}
+static inline char * strncpy(char * d, const char *s, size_t n){char *r=d;if (n) do {*d++=*s;s+=!!*s;} while (--n);return r;}
+static inline char *strstr(const char *h, const char *n){size_t len=strlen(n);while(*h){if(*h==*n && !memcmp(h,n,len)) return (char *)h;else h++;}return NULL;}
 #endif
 
 /** Note:
