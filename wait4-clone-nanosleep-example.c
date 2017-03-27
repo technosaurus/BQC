@@ -8,6 +8,7 @@ int _main(){
 	if (cid == 0){
 		struct timespec rem, req={5,0};
 		nanosleep(&req,&rem);
+		write(1,"hw\n",3);
 		exit(cid);
 	}else if (cid < 0) exit(-cid);
 	wait4(cid,&status,options,NULL);
