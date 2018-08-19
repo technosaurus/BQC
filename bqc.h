@@ -1633,6 +1633,262 @@ typedef union address {
 long errno; //technically should be int, but syscalls return long - avoids casts
 char **environ;
 #endif
+
+#if 1 //prototypes
+#define XMACRO_CFUNCTIONS(X,...) \
+	/* RETURN    NAME    PARAMETERS */ \
+	X(long int,  a64l,  const char *) \
+	X(void,  abort,  void) \
+	X(int,  abs,  int) \
+	X(int,  accept,  int, struct sockaddr *, socklen_t *) \
+	X(int,  access,  const char *, int) \
+	X(double,  acos,  double) \
+	X(float,  acosf,  float) \
+	X(double,  acosh,  double) \
+	X(float,  acoshf,  float) \
+	X(long double,  acoshl,  long double) \
+	X(long double,  acosl,  long double) \
+	X(int,  addmntent,  FILE *, const struct mntent *) \
+	X(int,  adjtime,  const struct timeval *, struct timeval *) \
+	X(int,  adjtimex,  struct timex *) \
+	X(int,  aio_cancel,  int, struct aiocb *) \
+	X(int,  aio_cancel64,  int, struct aiocb *) \
+	X(int,  aio_error,  const struct aiocb *) \
+	X(int,  aio_error64,  const struct aiocb64 *) \
+	X(int,  aio_fsync,  int, struct aiocb *) \
+	X(int,  aio_fsync64,  int, struct aiocb64 *) \
+	X(void,  aio_init,  const struct aioinit *) \
+	X(int,  aio_read,  struct aiocb *) \
+	X(int,  aio_read64,  struct aiocb *) \
+	X(ssize_t,  aio_return,  const struct aiocb *) \
+	X(int,  aio_return64,  const struct aiocb64 *) \
+	X(int,  aio_suspend,  const struct aiocb *const [], int, const struct timespec *) \
+	X(int,  aio_suspend64,  const struct aiocb64 *const list[], int, const struct timespec *) \
+	X(int,  aio_write,  struct aiocb *) \
+	X(int,  aio_write64,  struct aiocb *) \
+	X(unsigned,  alarm,  unsigned int) \
+	X(void,  alloca,  size_t) \
+	X(int,  alphasort,  const void *, const void *) \
+	X(int,  alphasort64,  const void *, const void *) \
+	X(void,  argp_error,  const struct argp_state *, const char *, ...) \
+	X(void,  argp_failure,  const struct argp_state *, int, int, const char *, ...) \
+	X(void,  argp_help,  const struct argp *, FILE *, unsigned, char *) \
+	X(error_t,  argp_parse,  const struct argp *, int, char **, unsigned, int *, void *) \
+	X(void,  argp_state_help,  const struct argp_state *, FILE *, unsigned) \
+	X(void,  argp_usage,  const struct argp_state *) \
+	X(error_t,  argz_add,  char **, size_t *, const char *) \
+	X(error_t,  argz_add_sep,  char **, size_t *, const char *, int) \
+	X(error_t,  argz_append,  char **, size_t *, const char *, size_t) \
+	X(size_t,  argz_count,  const char *, size_t) \
+	X(error_t,  argz_create,  char *const [], char **, size_t *) \
+	X(error_t,  argz_create_sep,  const char *, int, char **, size_t *) \
+	X(error_t,  argz_delete,  char **, size_t *, char *) \
+	X(void,  argz_extract,  char *, size_t, char **) \
+	X(error_t,  argz_insert,  char **, size_t *, char *, const char *) \
+	X(char,  argz_next,  char *, size_t, const char *) \
+	X(error_t,  argz_replace,  char **, size_t *, const char *, const char *, unsigned *) \
+	X(void,  argz_stringify,  char *, size_t, int) \
+	X(char,  asctime,  const struct tm *) \
+	X(double,  asin,  double) \
+	X(float,  asinf,  float) \
+	X(double,  asinh,  double) \
+	X(float,  asinhf,  float) \
+	X(long double,  asinhl,  long double) \
+	X(long double,  asinl,  long double) \
+	X(int,  asprintf,  char **, const char *, ...) \
+	X(void,  assert,  int) \
+	X(void,  assert_perror,  int) \
+	X(double,  atan,  double) \
+	X(double,  atan2,  double, double) \
+	X(float,  atan2f,  float, float) \
+	X(long double,  atan2l,  long double, long double) \
+	X(float,  atanf,  float) \
+	X(double,  atanh,  double) \
+	X(float,  atanhf,  float) \
+	X(long double,  atanhl,  long double) \
+	X(long double,  atanl,  long double) \
+	X(int,  atexit,  void (*)(void)) \
+	X(double,  atof,  const char *) \
+	X(int,  atoi,  const char *) \
+	X(long,  atol,  const char *) \
+	X(long,  atoll,  const char *) \
+	X(int,  backtrace,  void **, int) \
+	X(char,  backtrace_symbols,  void *const *, int) \
+	X(void,  backtrace_symbols_fd,  void *const *, int, int) \
+	X(char,  basename,  char *) \
+	X(int,  bcmp,  const void *, const void *, size_t) \
+	X(void,  bcopy,  const void *, void *, size_t) \
+	X(int,  bind,  int, struct sockaddr *, socklen_t) \
+	X(char,  bindtextdomain,  const char *, const char *) \
+	X(char,  bind_textdomain_codeset,  const char *, const char *) \
+	X(int,  brk,  void *) \
+	X(void *,  bsearch,  const void *, const void *, size_t, size_t, int (*)(const void *, const void *)) \
+	X(wint_t,  btowc,  int) \
+	X(void,  bzero,  void *, size_t) \
+	X(void *,  calloc,  size_t, size_t) \
+	X(double complex,  casin,  double complex) \
+	X(float complex,  casinf,  float complex) \
+	X(long double complex,  casinl,  long double complex) \
+	X(double,  ceil,  double) \
+	X(void,  clearerr,  FILE *) \
+	X(clock_t,  clock,  void) \
+	X(int,  close,  int) \
+	X(int,  closedir,  DIR *) \
+	X(double,  cos,  double) \
+	X(double,  cosh,  double) \
+	X(char,  ctime,  const time_t *) \
+	X(double,  difftime,  time_t, time_t) \
+	X(div_t,  div,  int, int) \
+	X(int,  execl,  char *, char *, ...) \
+	X(int,  execlp,  char *, char *, ...) \
+	X(void,  exit,  int) \
+	X(double,  exp,  double) \
+	X(double,  fabs,  double) \
+	X(int,  fclose,  FILE *) \
+	X(int,  feof,  FILE *) \
+	X(int,  ferror,  FILE *) \
+	X(int,  fflush,  FILE *) \
+	X(int,  fgetc,  FILE *) \
+	X(int,  fgetpos,  FILE *, fpos_t *) \
+	X(char,  fgets,  char *, int, FILE *) \
+	X(double,  floor,  double) \
+	X(double,  fmod,  double, double) \
+	X(FILE,  fopen,  const char *, const char *) \
+	X(int,  fprintf,  FILE *, const char *, ...) \
+	X(int,  fputc,  int, FILE *) \
+	X(int,  fputs,  const char *, FILE *) \
+	X(size_t,  fread,  void *, size_t, size_t, FILE *) \
+	X(void,  free,  void *) \
+	X(FILE,  freopen,  const char *, const char *, FILE *) \
+	X(double,  frexp,  double, int *) \
+	X(int,  fscanf,  FILE *, const char *, ...) \
+	X(int,  fseek,  FILE *, long int, int) \
+	X(int,  fsetpos,  FILE *, const fpos_t *) \
+	X(long,  ftell,  FILE *) \
+	X(size_t,  fwrite,  const void *, size_t, size_t, FILE *) \
+	X(int,  getc,  FILE *) \
+	X(int,  getchar,  void) \
+	X(char,  getenv,  const char *) \
+	X(char,  gets,  char *) \
+	X(struct tm,  gmtime,  const time_t *) \
+	X(int,  ioctl,  int d, int request, ...) \
+	X(int,  isalnum,  int) \
+	X(int,  isalpha,  int) \
+	X(int,  iscntrl,  int) \
+	X(int,  isdigit,  int) \
+	X(int,  isgraph,  int) \
+	X(int,  islower,  int) \
+	X(int,  isprint,  int) \
+	X(int,  ispunct,  int) \
+	X(int,  isspace,  int) \
+	X(int,  isupper,  int) \
+	X(int,  isxdigit,  int) \
+	X(long,  labs,  long int) \
+	X(double,  ldexp,  double, int) \
+	X(ldiv_t,  ldiv,  long int, long int) \
+	X(struct lconv *,  localeconv,  void) \
+	X(struct tm *,  localtime,  const time_t *) \
+	X(double,  log,  double) \
+	X(double,  log10,  double) \
+	X(void,  longjmp,  jmp_buf, int) \
+	X(void *,  malloc,  size_t) \
+	X(int,  mblen,  const char *, size_t) \
+	X(size_t,  mbstowcs,  wchar_t *, const char *, size_t) \
+	X(int,  mbtowc,  wchar_t *, const char *, size_t) \
+	X(void *,  memchr,  const void *, int, size_t) \
+	X(int,  memcmp,  const void *, const void *, size_t) \
+	X(void *,  memcpy,  void *, const void *, size_t) \
+	X(void *,  memmove,  void *, const void *, size_t) \
+	X(void *,  memset,  void *, int, size_t) \
+	X(time_t,  mktime,  struct tm *) \
+	X(double,  modf,  double, double *) \
+	X(DIR,  opendir,  const char *) \
+	X(void,  perror,  const char *) \
+	X(double,  pow,  double, double) \
+	X(int,  printf,  const char *, ...) \
+	X(int,  putc,  int, FILE *) \
+	X(int,  putchar,  int) \
+	X(int,  puts,  const char *) \
+	X(void, qsort,  void *, size_t, size_t, int (*)(const void *, const void *)) \
+	X(int,  raise,  int) \
+	X(int,  rand,  void) \
+	X(struct dirent *,  readdir,  DIR *) \
+	X(void *,  realloc,  void *, size_t) \
+	X(int,  remove,  const char *) \
+	X(int,  rename,  const char *, const char *) \
+	X(void,  rewind,  FILE *) \
+	X(void,  rewinddir,  DIR *) \
+	X(int,  scandir,  const char *, struct dirent ***, int (*)(const struct dirent *), int (*)(const void *, const void *)) \
+	X(int,  scanf,  const char *, ...) \
+	X(void,  seekdir,  DIR *, off_t) \
+	X(ssize_t,  send,  int,const void *,size_t,int) \
+	X(ssize_t,  sendto,  int, const void *, size_t, int, const struct sockaddr *, socklen_t) \
+	X(void,  setbuf,  FILE  *, char *) \
+	X(int,  setjmp,  jmp_buf) \
+	X(char,  setlocale,  int, const char *) \
+	X(int,  setvbuf,  FILE  *, char *, int, size_t) \
+	X(double,  sin,  double) \
+	X(double,  sinh,  double) \
+	X(int,  sprintf,  char *, const char *, ...) \
+	X(double,  sqrt,  double) \
+	X(void,  srand,  unsigned int) \
+	X(int,  sscanf,  const char *, const char *, ...) \
+	X(char *,  strcat,  char *, const char *) \
+	X(char *,  strchr,  const char *, int) \
+	X(int,  strcmp,  const char *, const char *) \
+	X(int,  strcoll,  const char *, const char *) \
+	X(char *,  strcpy,  char *, const char *) \
+	X(size_t,  strcspn,  const char *, const char *) \
+	X(char *,  strerror,  int) \
+	X(size_t,  strftime,  char *, size_t, const char *, const struct tm *) \
+	X(size_t,  strlen,  const char *) \
+	X(char *,  strncat,  char *, const char *, size_t) \
+	X(int,  strncmp,  const char *, const char *, size_t) \
+	X(char *,  strncpy,  char *, const char *, size_t) \
+	X(char *,  strpbrk,  const char *, const char *) \
+	X(char *,  strrchr,  const char *, int) \
+	X(size_t,  strspn,  const char *, const char *) \
+	X(char *,  strstr,  const char *, const char *) \
+	X(double,  strtod,  const char *, char **) \
+	X(char *,  strtok,  char *, const char *) \
+	X(long,  strtol,  const char *, char **, int) \
+	X(long,  strtoll,  const char *, char **, int) \
+	X(unsigned,  strtoul,  const char *, char **, int) \
+	X(size_t,  strxfrm,  char *, const char *, size_t) \
+	X(int,  system,  const char *) \
+	X(double,  tan,  double) \
+	X(double,  tanh,  double) \
+	X(off_t,  telldir,  DIR *) \
+	X(time_t,  time,  time_t *) \
+	X(FILE,  tmpfile,  void) \
+	X(char,  tmpnam,  char *) \
+	X(int,  tolower,  int) \
+	X(int,  toupper,  int) \
+	X(int,  ungetc,  int, FILE *) \
+	X(int,  vfprintf,  FILE *, const char *, va_list) \
+	X(int,  vprintf,  const char *, va_list) \
+	X(int,  vsprintf,  char *, const char *, va_list) \
+	X(size_t,  wcstombs,  char *, const wchar_t *, size_t) \
+	X(int,  wctomb,  char *, wchar_t)
+//END XMACRO_CFUNCTIONS
+
+#define X_OP(ret,name,...) /*static*/ ret name (__VA_ARGS__);
+XMACRO_CFUNCTIONS(X_OP)
+#undef X_OP
+
+#if TODO
+//this could export all functions in a single struct (only 1 symbol)
+const struct { 
+#define X_OP(ret,name,...) ret (*name)(__VA_ARGS__);
+  XMACRO_CFUNCTIONS(X_OP)
+#undef X_OP
+#define X_OP(ret,name,...) .name = name,
+} c = {  XMACRO_CFUNCTIONS(X_OP) };
+#undef X_OP
+#endif //TODO
+
+#endif
+
 #if 1 //syscall inline functions
 //TODO change these to macros for architectures that require immediate value
 // arguments to the syscall.  This will require changes to how each syscall is
