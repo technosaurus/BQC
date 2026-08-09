@@ -400,3 +400,142 @@ const char *custom_strstr_512(const char *haystack, const char *needle) {
         curr_haystack += 64;
     }
 }
+
+//// THREADED QSORT
+
+// Config structure for the modern clone3 system call
+struct clone_args {
+    uint64_t flags;        // Threading flags (VM, FS, FILES, SIGHAND, PIDFD)
+    uint64_t pidfd;        // Pointer to save the child's file descriptor (int *)
+    uint64_t child_tid;    // Pointer to save child Thread ID (unused here)
+    uint64_t parent_tid;   // Pointer to save parent Thread ID (unused here)
+    uint64_t exit_signal;  // Death signal configuration (0 for raw threads)
+    uint64_t stack;        // Lowest address of stack memory allocation
+    uint64_t stack_size;   // Total byte size of the stack mapping
+    uint64_t tls;          // Thread Local Storage context pointer
+    uint64_t set_tid;      // Specific PID selection array (unused)
+    uint64_t set_tid_size; // Size of set_tid array (unused)
+    uint64_t cgroup;       // Target cgroup file descriptor (unused)
+};
+
+// Target tracking structure for the poll system call
+struct pollfd {
+    int fd;           // The target process file descriptor (pidfd)
+    short events;     // Requested notification events (POLLIN = 0x0001)
+    short revents;    // Returned events filled out by the kernel
+};
+
+// Internal payload pack passed down to our spawned child thread
+struct sort_args {
+    void *base;
+    size_t nel;
+    size_t width;
+    int (*compar)(const void *, const void *);
+};
+
+// Entry block for the cloned thread
+static int _qsort_thread_entry(void *arg) {
+    struct sort_args *args = (struct sort_args *)arg;
+    qsort(args->base, args->nel, args->width, args->compar);
+    _exit(0); // Safely self-terminate via your custom exit syscall
+}
+
+// Compact scalar word/byte swapper for partitioning
+static inline void _qsort_swap(char *a, char *b, size_t width) {
+    size_t words = width / sizeof(uintptr_t);
+    size_t bytes = width % sizeof(uintptr_t);
+    
+    uintptr_t *wa = (uintptr_t *)a;
+    uintptr_t *wb = (uintptr_t *)b;
+    while (words--) {
+        uintptr_t tmp = *wa;
+        *wa++ = *wb;
+        *wb++ = tmp;
+    }
+    
+    char *ca = (char *)wa;
+    char *cb = (char *)wb;
+    while (bytes--) {
+        char tmp = *ca;
+        *ca++ = *cb;
+        *cb++ = tmp;
+    }
+}
+#endif
+
+
+void qsort(void *base, size_t nel, size_t width, int (*compar)(const void *, const void *)) {
+    if (nel < 2) return;
+
+    // 1. Core Hoare Partitioning Loop
+    char *array = (char *)base;
+    char *pivot = array + ((nel / 2) * width);
+    size_t i = 0;
+    size_t j = nel - 1;
+
+    while (1) {
+        while (compar(array + (i * width), pivot) < 0) i++;
+        while (compar(array + (j * width), pivot) > 0) j--;
+
+        if (i >= j) break;
+
+        if (pivot == array + (i * width)) pivot = array + (j * width);
+        else if (pivot == array + (j * width)) pivot = array + (i * width);
+
+        _qsort_swap(array + (i * width), array + (j * width), width);
+        i++;
+        j--;
+    }
+
+    size_t left_nel = i;
+    size_t right_nel = nel - i;
+
+    // 2. Thread Optimization Layer
+#if !defined(LIBC_SIZE_OPTIMIZED)
+    // Run modern threading block only if the syscalls are supported in the Xmacro layout
+    // and the target size is large enough to beat thread creation costs
+    if (_SYS_CLONE3_NUM != -1 && _SYS_POLL_NUM != -1 && nel > 100000) {
+        void *stack = allocate_pages(4096);
+        if (stack) {
+            int child_pfd = -1;
+            struct sort_args args = { base, left_nel, width, compar };
+            struct clone_args c_args = {0};
+
+            // CLONE_VM (0x100) | CLONE_FS (0x200) | CLONE_FILES (0x400) 
+            // CLONE_SIGHAND (0x800) | CLONE_PIDFD (0x80000)
+            c_args.flags = 0x00000100 | 0x00000200 | 0x00000400 | 0x00000800 | 0x00080000;
+            c_args.pidfd = (uintptr_t)&child_pfd;
+            c_args.stack = (uintptr_t)stack;
+            c_args.stack_size = 4096;
+
+            // Invoke uniformly via your generic 2-argument macro engine
+            int ret = libc_syscall_2(_SYS_CLONE3_NUM, (long)&c_args, sizeof(c_args));
+
+            if (ret == 0) {
+                // Child Thread Path: immediately pivot to sorting the left block
+                _qsort_thread_entry(&args);
+            } 
+            else if (ret > 0) {
+                // Parent Thread Path: immediately sort the right block in parallel
+                qsort(array + (left_nel * width), right_nel, width, compar);
+
+                // Race-free lifecycle sync using your generic 3-argument poll trap
+                struct pollfd pfd = { .fd = child_pfd, .events = 0x0001 }; // POLLIN
+                libc_syscall_3(_SYS_POLL_NUM, (long)&pfd, 1, -1); // Infinite timeout
+
+                // Clean up file descriptors and release the virtual stack
+                libc_syscall_1(_SYS_CLOSE_NUM, child_pfd);
+                munmap(stack, 4096);
+                return; // Sorting branch successfully completed in parallel!
+            }
+
+            // Fallback: If clone3 returned -1 (e.g., ENOSYS or resource limit), free stack and drop through
+            munmap(stack, 4096);
+        }
+    }
+#endif
+
+    // 3. Fallback / Size-Optimized Sequential Sorting Block
+    qsort(base, left_nel, width, compar);
+    qsort(array + (left_nel * width), right_nel, width, compar);
+}
