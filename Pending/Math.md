@@ -198,49 +198,18 @@ When your interpreter links against `libm_vm_core.h`, the entire mathematical st
 
 ### Comparison table of parameter-passing registers for major processor architectures and their respective application binary interfaces (ABIs).
 
-Calling Convention Parameter Registers
 
-Architecture & ABI	Max Register Args (Integer)	Integer / Pointer Argument Registers (In Order)	Floating-Point / Vector Argument Registers
-x86-64 / System V 
-(Linux, macOS, BSD)	6	RDI, RSI, RDX, RCX, R8, R9	XMM0 to XMM7 (First 8)
-x86-64 / Windows 
-(Microsoft x64)	4	RCX, RDX, R8, R9	XMM0, XMM1, XMM2, XMM3
-AArch64 / ARM64 
-(AAPCS64)	8	X0 to X7 (W0 to W7 for 32-bit values)	V0 to V7 / D0 to D7 / S0 to S7
-ARM (32-bit) 
-(AAPCS)	4	R0, R1, R2, R3	S0 to S15 or D0 to D7 (VFP/NEON base)
-RISC-V (32/64-bit)	8	a0 to a7 (x10 to x11 for results/args, up to x17)	fa0 to fa7
-MIPS O32	4	a0, a1, a2, a3 ($4 to $7)	$f12, $f14 (or split across GPRs)
-MIPS N32 / N64	8	a0 to a7 ($4 to $11)	$f12 to $f19
-PowerPC (32-bit)	8	GPR3 to GPR10	FPR1 to FPR13
-x86 (32-bit) cdecl / stdcall	0	None (Passed entirely on the stack)	None (Passed on the stack / x87 ST0)
-x86 (32-bit) __fastcall	2	ECX, EDX	None (Passed on the stack)
-
-Calling Convention Return Value Registers
-
-Architecture & ABI	Integer / Pointer Return Registers	Floating-Point Return Registers	Notes / Intrinsic Handling
-x86-64 / System V 
-(Linux, macOS, BSD)	RAX 
-(Secondary: RDX for 128-bit)	XMM0 
-(Secondary: XMM1)	Vector intrinsics returning __m128 or __m256 use XMM0/YMM0.
-x86-64 / Windows 
-(Microsoft x64)	RAX	XMM0	Structs/vectors larger than 64 bits are returned via a pointer passed in RCX.
-AArch64 / ARM64 
-(AAPCS64)	X0 
-(Secondary: X1 to X7)	V0 
-(Secondary: V1 to V7)	Vector intrinsics return directly in float/vector registers (V0).
-ARM (32-bit) 
-(AAPCS)	R0 
-(Secondary: R1 for 64-bit)	S0 or D0	Soft-float variants use R0 and R1 instead of coprocessor registers.
-RISC-V (32/64-bit)	a0 
-(Secondary: a1)	fa0 
-(Secondary: fa1)	Maps directly to x10/x11 (Integer) and f10/f11 (Float).
-MIPS O32 / N32 / N64	v0 ($2) 
-(Secondary: v1 / $3)	$f0 
-(Secondary: $f2)	In N32/N64, structs up to 128 bits return in v0 and v1.
-PowerPC (32-bit)	GPR3 
-(Secondary: GPR4)	FPR1	Vector returns (AltiVec) typically go into VR2.
-x86 (32-bit) cdecl / stdcall	EAX 
-(Secondary: EDX for 64-bit)	ST(0) (x87 stack)	SIMD extensions like SSE use XMM0 if the toolchain supports it.
-
+Architecture & ABI  Max RetInt   Register Args (Integer)    RetFloat Floating-Point / Vector Argument Registers
+```
+x86-64 / System V    6  RAX:RDX  RDI, RSI, RDX, RCX, R8, R9  XMM0:1  XMM0 to XMM7 (First 8)
+x86-64 / Windows     4  RAX/RCX  RCX, RDX, R8, R9            XMM0    XMM0, XMM1, XMM2, XMM3
+AArch64 / ARM64      8  X0(-X7)  X0-X7 (W0-W7 for 32-bit)    VO(-V7) V0 to V7 / D0 to D7 / S0 to S7
+ARM (32-bit)         4  R0:R1    R0, R1, R2, R3              S0/D0   S0 to S15 or D0 to D7 (VFP/NEON base)
+RISC-V (32/64-bit)   8  a0:a1    a0-a7 (x10-x11 up to x17)   fa0:1   fa0-fa7
+MIPS O32             4  v0:v1    a0-a3 ($4-$7)               $f0:2   $f12, $f14 (or split across GPRs)
+MIPS N32 / N64       8  $2:$3    a0-a7 ($4-$11)              $f0:2   $f12-$f19
+PowerPC (32-bit)     8  GPR3:4   GPR3-GPR10                 FPR1/VR2 FPR1-FPR13
+x86-32 cdecl/stdcall 0  EAX:EDX  Stack                      ST0/XMM0 Stack
+x86-32 __fastcall    2  EAX:EDX  ECX, EDX                   ST0/XMM0 Stack
+```
 
