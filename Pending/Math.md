@@ -213,3 +213,77 @@ x86-32 cdecl/stdcall 0  EAX:EDX  Stack                      ST0/XMM0 Stack
 x86-32 __fastcall    2  EAX:EDX  ECX, EDX                   ST0/XMM0 Stack
 ```
 
+
+
+
+LLVM IR has the potential to allow this to be incorporated into cross architecture blobs with just a few changes.
+
+
+Title: [RFC][Feature Request] Introduce select_arch Block Instruction to Defer Target-Specific Code Selection to Backend Lowering (llc)
+
+
+Problem Statement
+
+Currently, LLVM IR is fundamentally target-dependent. Frontends (such as Clang or Rustc) must evaluate target-specific macro blocks (#ifdef __x86_64__), structure alignments, and hardware intrinsics during the initial lexing/parsing phases. This couples the resulting LLVM Bitcode (.bc) or IR (.ll) to a specific architecture layout string.
+While this model enables heavy middle-end optimizations, it prevents true target-agnostic IR distribution. Efforts to solve this for hot loops—such as GNU ifuncs or function multiversioning—operate at the function symbol or dynamic linker level. They require building multi-architecture "fat binaries," which suffer from severe binary bloat due to the massive duplication of "cold" code paths, headers, and metadata across isolated slices.
+There is currently no mechanism in LLVM IR to write target-agnostic, portable modules that can cleanly embed optimized, micro-architectural "escape hatches" (e.g., AVX-512 vs. ARM SVE implementations of a vector strlen) without blinding the middle-end optimizer or breaking the IR type-system invariants.
+
+Proposed Solution: The select_arch Structural Instruction
+
+We propose introducing a new control-flow or block-level instruction wrapper: select_arch.
+This instruction allows multiple, architecture-specific basic-block paths to coexist alongside a mandatory, target-agnostic default fallback path. Crucially, the resolution of this block is entirely deferred past the middle-end (opt) to the late-stage backend lowering/legalization phases (llc or libLTO).
+
+Conceptual Syntax Example (strlen Vector Scan)
+
+```
+llvm
+; The middle-end treats this instruction as a well-behaved operation 
+; returning an i64 index based on the unified functional interface.
+%zero_index = select_arch {
+  
+  x86_64_avx512: [
+    ; --- TARGET SPECIFIC PATH A ---
+    %vec = call <64 x i8> @llvm.x86.avx512.mask.loadu.q(...) 
+    %mask = call i64 @llvm.x86.avx512.ptestm.b.512(...)
+    %res = call i64 @llvm.ctz.i64(i64 %mask, i1 true) 
+    ret i64 %res
+  ],
+  
+  aarch64_sve: [
+    ; --- TARGET SPECIFIC PATH B ---
+    %pred = call <vscale x 16 x i1> @llvm.aarch64.sve.brkb(...)
+    %res_arm = call i64 @llvm.aarch64.sve.cntp(...)
+    ret i64 %res_arm
+  ],
+  
+  default: [
+    ; --- PORTABLE DEFAULT FALLBACK ---
+    %vec_def = load <64 x i8>, <64 x i8>* %ptr, align 64
+    %cmp = icmp eq <64 x i8> %vec_def, zeroinitializer
+    %scalar_idx = call i64 @fallback_vector_scan(<64 x i1> %cmp)
+    ret i64 %scalar_idx
+  ]
+} [attributes: noopt]
+```
+
+How It Works Under the Hood
+
+1. The Semantic Equivalence Assumption (Middle-End opt):
+To preserve compiler efficiency, the middle-end optimizer runs passes under the strict assumption that all architecture-specific paths are semantically equivalent to the default block. The optimizer can safely run Dead Code Elimination (DCE), Loop Invariant Code Motion (LICM), and inlining on the code surrounding the select_arch block by evaluating the behavior of the pure, target-agnostic default IR.
+2. Interface and Type Invariance:
+To prevent type explosion, every block option within the select_arch instruction must adhere to the exact same input signatures and return types. The optimizer treats the choice block as an opaque value generator.
+3. The noopt Safeguard Attribute:
+An optional noopt or preserve_interface attribute can be applied to the instruction block. This tells the middle-end optimizer to treat the selection boundary as a strict optimization barrier, ensuring aggressive loop transformations or variable merging do not invalidate the structural assumptions of the underlying assembly blocks.
+4. Late-Stage Resolution (Backend Lowering in llc):
+When llvm-link unifies modules (e.g., combining an application with static libraries), the select_arch block is preserved wholesale. Only when the final target architecture is defined during SelectionDAG/GlobalISel legalization does llc inspect the options:
+	• It matches the compilation target (e.g., -march=skylake-avx512).
+	• It drops the alternative architecture blocks and the default block entirely from memory.
+	• It lowers the target-specific intrinsics and inline assembly constraints directly into native machine code.
+	• If the architecture doesn't match any specified hardware flag, it gracefully lowers the pre-optimized default block.
+
+Core Benefits
+
+• Elimination of Fat Binary Bloat: Deploys a single, "Thin-Fat" architecture-neutral bitcode file. The size penalty is constrained strictly to the performance-critical hot loops rather than replicating 100% of an application's cold code paths.
+• Unified System Libraries: Enables core system frameworks (like llvm-libc or libc++) to distribute highly portable, single-bitcode modules that automatically resolve to peak native micro-architectural speeds on-device at install time.
+• Preserves Toolchain Separation: Bypasses the need for a separate "bitcode linker." The resolution mechanics fit seamlessly into the existing libLTO / backend legalization pipeline, requiring changes only to instruction handling rather than toolchain choreography.
+
