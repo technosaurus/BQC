@@ -287,3 +287,174 @@ Core Benefits
 • Unified System Libraries: Enables core system frameworks (like llvm-libc or libc++) to distribute highly portable, single-bitcode modules that automatically resolve to peak native micro-architectural speeds on-device at install time.
 • Preserves Toolchain Separation: Bypasses the need for a separate "bitcode linker." The resolution mechanics fit seamlessly into the existing libLTO / backend legalization pipeline, requiring changes only to instruction handling rather than toolchain choreography.
 
+v2.
+
+... adds exact compiler interface specifications, tracks how it impacts SelectionDAG and GlobalISel lowering, addresses previous related proposals (such as target multiversioning and hardware-capability intrinsics), and explains the concrete implementation tradeoffs. [1] (https://llvm.org/docs/CodeGenerator.html), [2] (https://llvm.org/docs/ExtendingLLVM.html), [3] (https://compilercodegen.hashnode.dev/llvm-instruction-selection-selectiondag-building)
+
+Title: [RFC] Introduce select_arch Struct Instruction to Defer Micro-Architectural Block Selection to Target Lowering
+
+
+1. Problem Statement & Motivation
+
+Modern high-performance libraries (llvm-libc, libc++, cryptography engines, and matrix compute kernels) suffer from systemic structural fragmentation across CPU architectures. Frontends must evaluate platform-dependent implementations (e.g., AVX-512 vs. ARM SVE vector scans) at the preprocessor or initial lexing/parsing phases. This bakes target-specific memory alignments, structural definitions, and hardware-specific calling conventions directly into the LLVM IR. [1] (https://llvm.org/docs/ExtendingLLVM.html)
+To distribute high-performance binaries universally, developers rely on GNU ifuncs, target clones, or explicit function multiversioning. These strategies operate at the function or dynamic linker boundary, introducing monolithic binary bloat because they duplicate 100% of an application's cold code paths (error paths, parsing, configuration logic) across multi-architecture slices.
+There is currently no block-level mechanism in LLVM IR that allows architecture-agnostic modules to embed micro-architectural "escape hatches" for performance-critical hot loops without ruining middle-end (opt) analysis or breaking fundamental target data layout invariants. [1] (https://llvm.org/docs/Frontend/PerformanceTips.html)
+
+2. Proposed Interface & IR Specification
+
+We propose introducing a terminator-adjacent block selection instruction: select_arch. [1] (https://llvm.org/docs/ExtendingLLVM.html)
+
+Syntax Definition:
+
+```
+llvm
+<result> = select_arch [ <type> ] {
+  <target_features_string_A>: label %block_A,
+  <target_features_string_B>: label %block_B,
+  ...
+  default: label %block_default
+} [, attributes: [ noopt | preserve_interface ]]
+```
+
+Structural Constraints & Invariants:
+
+• Type Invariance: Every landing basic block specified within the select_arch block must yield an execution path returning the exact same <type> or terminating in identical function return profiles.
+• Dominance & Scoping: Variables defined outside the select_arch scope cannot be modified mutated-by-reference across architecture branches before lowering. The instruction acts as a strict control-flow value generator.
+• The noopt Attribute: When annotated, middle-end passes (such as LICM, Loop Unrolling, or GVN) are prohibited from hoisting instructions across or blending registers through the architecture boundaries. This ensures optimization assumptions inside a handcrafted inline assembly block are completely preserved until target selection. [1] (https://llvm.org/docs/Frontend/PerformanceTips.html)
+
+3. Backend Implementation & Lowering Lifecycle
+
+
+A. Middle-End Opt Phase (Semantic Equivalence)
+
+To ensure middle-end optimization passes are not blind to the selection block, the opt pipeline operates under the Semantic Equivalence Assumption. It analyzes, inlines, and optimizes the code surrounding the select_arch instruction by treating the target-agnostic default path as the definitive behavioral graph of the instruction.
+
+B. SelectionDAG / GlobalISel Lowering
+
+The resolution of the select_arch block occurs late during target code generation (llc or libLTO) inside the Instruction Selection Legalization phase. [1] (https://llvm.org/devmtg/2024-10/slides/tutorial/MacLean-Fargnoli-ABeginnersGuide-to-SelectionDAG.pdf), [2] (https://compilercodegen.hashnode.dev/llvm-instruction-selection-selectiondag-building)
+       [ Unified LLVM IR Module ]
+                   │
+                   ▼
+       [ Build SelectionDAG / gMIR ]
+                   │
+    ┌──────────────▼──────────────────────────────┐
+    │ LEGALIZATION PHASE                          │
+    │  - Read Target Subtarget Features           │
+    │  - Match against select_arch strings        │
+    │  - Mutate SDNode / GINode to Chosen Path    │
+    └──────────────┬──────────────────────────────┘
+                   │
+                   ▼
+      [ Dead Code Combine & Prune ] 
+      (Discards unused arms cleanly before MIR)
+                   │
+                   ▼
+         [ Target Machine Code ]
+1. SelectionDAG Interface: During initial DAG construction, the select_arch instruction maps to a temporary target-independent node: ISD::SELECT_ARCH. [1] (https://llvm.org/doxygen/ISDOpcodes_8h_source.html), [2] (https://llvm.org/devmtg/2024-10/slides/tutorial/MacLean-Fargnoli-ABeginnersGuide-to-SelectionDAG.pdf)
+2. Legalization / Subtarget Target Transform Info (TTI) Query: During the operation legalization phase, the backend checks the current subtarget features (Subtarget->getFeatureBits()). [1] (https://llvm.org/docs/GlobalISel/InstructionSelect.html), [2] (https://llvm.org/devmtg/2024-10/slides/tutorial/MacLean-Fargnoli-ABeginnersGuide-to-SelectionDAG.pdf)
+3. Graph Mutation:
+	• If a target string matches (e.g., +avx512f), the ISD::SELECT_ARCH node is programmatically mutated into a direct unconditional jump to the corresponding architecture basic block.
+	• The unselected blocks and the default block are dropped. The DAGCombiner then cleanly purges the unreachable paths, meaning zero dead assembly instructions exit the backend.
+	• If no subtarget string matches, it legalizes down to the default fallback path. [1] (https://llvm.org/devmtg/2024-10/slides/tutorial/MacLean-Fargnoli-ABeginnersGuide-to-SelectionDAG.pdf), [2] (https://llvm.org/docs/GlobalISel/InstructionSelect.html)
+
+4. Comparison with Prior Art & Existing Solutions
+
+
+Alternative A: Function Multiversioning (__attribute__((target(...))))
+
+• Why select_arch is Better: Function multiversioning duplicates the entire outer function context, cloning code that doesn't need optimization. select_arch restricts micro-architectural differences exclusively to localized basic blocks (hot loops), allowing 90% of an application's cold code to remain universally shared and un-duplicated.
+• Why select_arch is Worse: It requires updating intermediate representation analyses and instruction iterators to support a novel structural block container. [1] (https://llvm.org/docs/ExtendingLLVM.html)
+
+Alternative B: Target-Specific Intrinsics (@llvm.x86.avx512...) inside standard control flow
+
+• Why select_arch is Better: If standard control flow contains foreign target intrinsics (e.g., an ARM backend encountering an x86 intrinsic), the backend code generator encounters illegal instructions and crashes during lowering. select_arch creates a recognized syntactic boundary that lets the compiler deliberately discard foreign target code blocks before constraint validation occurs. [1] (https://llvm.org/devmtg/2024-10/slides/tutorial/MacLean-Fargnoli-ABeginnersGuide-to-SelectionDAG.pdf), [2] (https://llvm.org/docs/GlobalISel/InstructionSelect.html)
+
+5. Tradeoffs & Implementability Review
+
+• Implementability (High): This design does not require creating an independent "bitcode linker" format or changing standard OS-level dynamic loaders. It interfaces cleanly with the existing libLTO plugin framework. By embedding resolution directly inside SelectionDAG/GlobalISel legalization, the execution relies entirely on established compiler backend infrastructure.
+• The Toolchain Tradeoff (Slight Compilation Latency): Moving this resolution step down to the client device or late-stage deployment means the backend code generation pass must occur at install-time. However, because the heavy front-end work and global middle-end structural optimizations have already been completed on the universal IR, the late-stage machine code emission (llc) is remarkably fast and cheap, presenting negligible latency overhead even on consumer hardware. [1] (https://discourse.llvm.org/t/rfc-thinlto-multi-thread-parallel-compilation-for-large-modules/90877), [2] (https://llvm.org/docs/CodeGenerator.html), [3] (https://llvm.org/docs/GlobalISel/InstructionSelect.html), [4] (https://compilercodegen.hashnode.dev/llvm-instruction-selection-selectiondag-building)
+
+v3.
+
+Your approach focusing on modern 64-bit systems simplifies the layout problem significantly. Since x86_64, AArch64, and RISC-V 64-bit platforms all share identical core layouts for primitives and pointers (with 64-bit pointer sizes, matching endianness, and standard alignments), data layout mismatch becomes a non-issue.
+Your insight about using this to implement "Static Inline IFUNCs" provides an incredibly elegant paradigm. Standard dynamic IFUNCs force code out-of-line behind an indirect branch, ruining context and function-inlining optimizations. A static, compile-time inline IFUNC solves this by embedding the dispatch logic directly within the basic block boundaries at compile-time or install-time. [1] (https://gcc.gnu.org/legacy-ml/gcc-patches/2017-06/msg02043.html)
+Here is how we translate the select_arch design into raw TableGen node pattern definitions and specify how the backend achieves these Static Inline IFUNCs.
+
+Part 1: TableGen Definitions for ISD::SELECT_ARCH
+
+In LLVM's target-independent selection infrastructure (typically defined in include/llvm/Target/TargetSelectionDAG.td), we define the node type and value traits.
+
+```
+tablegen
+//===----------------------------------------------------------------------===//
+// Target-independent SDNode definitions for compile-time architecture blocks
+//===----------------------------------------------------------------------===//
+
+// Define the SelectionDAG Type profile for the selection operation.
+// It takes a variable number of input branches (the custom blocks) and returns a value.
+def SDTSelectArch : SDTypeProfile<1, -1, [
+  SDTCisVT<0, iPTR> // Returns an explicit result type or token pointer
+]>;
+
+// Define the target-independent SelectionDAG Node (SDNode)
+def select_arch : SDNode<"ISD::SELECT_ARCH", SDTSelectArch, [SDNPHasChain, SDNPSideEffect]>;
+```
+
+How the Backend Target TableGen Leverages This Node
+
+When individual target architectures (like x86 or AArch64) compile their own instruction pattern matchers, they can define target patterns to capture their custom entries. Because select_arch handles control flow mapping to raw blocks, target-specific backend passes intercept it before machine instruction emission:
+tablegen
+// Example Target Pattern: If the lowering pass has selected x86_64 paths
+def : Pat<(select_arch), 
+          (X86_SelectBlock)>; // Directs TargetLegalizer to branch directly into the active block
+Use code with caution.
+
+Part 2: The Core Mechanism for "Static Inline IFUNCs"
+
+Currently, GNU IFUNCs require a runtime resolver function that executes during program load, returning a function pointer to a dedicated target symbol. This adds an indirect call penalty and prevents the compiler from optimizing across the call boundary. [1] (https://gcc.gnu.org/legacy-ml/gcc-patches/2017-06/msg02043.html)
+A Static Inline IFUNC maps perfectly onto our proposed LTO/client-side architecture distribution model:
+[ Traditional IFUNC (Runtime Dispatch) ]
+Caller Function ──► [ PLT / Jump Table ] ──► (Runtime Pointer Resolver) ──► Targeted Hardware Code (Out of line)
+
+[ Static Inline IFUNC via select_arch ]
+Caller Function [ Inner Basic Block ] ──(llc removes alternate arms)──► Targeted Hardware Code (Directly Inlined)
+Instead of generating runtime pointer lookups, the compiler uses select_arch to map block-level targets.
+
+System Library Implementation (Standard C/C++ STL Headers)
+
+Using our paradigm, standard libraries can implement header-level static inline IFUNCs directly inside inline headers. Developers gain absolute performance without maintaining bloated runtime dynamic dispatches.
+
+```
+// A structural look at what a standard library "Static Inline IFUNC" header looks like
+static inline size_t strlen(const char* s) {
+  size_t result;
+  
+  // The frontend passes this block through cleanly as a single, multi-arm AST node
+  __builtin_select_arch {
+    "x86_64+avx512f": {
+      // Inline AVX-512 strlen logic
+      __asm__ volatile("vptestm..." : "=r"(result) : "r"(s));
+    },
+    "aarch64+sve": {
+      // Inline SVE strlen logic
+      __asm__ volatile("brkb..." : "=r"(result) : "r"(s));
+    },
+    default: {
+      // Target-agnostic fallback that any basic compiler pass can loop-vectorize
+      const char* p = s;
+      while (*p) p++;
+      result = p - s;
+    }
+  };
+
+  return result;
+}
+```
+
+Why This is an Implementable and Better Solution
+
+1. Zero Runtime Overhead: Traditional IFUNC paths force a memory read and a call to a function pointer inside an external dynamic section. The static inline variant completely eliminates the PLT (Procedure Linkage Table) overhead. It resolves to local instructions with zero runtime tracking code.
+2. Context-Aware Optimizations: Because the target block selection happens before the backend generates its final Machine IR (MIR), the surrounding code retains context awareness. For example, if the compiler backend picks the x86_64_avx512 arm, the register allocator can cleanly blend the registers required by your inline assembly block directly into the parent function's register mapping, avoiding spilling variables to stack frames.
+3. Graceful Degradation for Static Binaries: Traditional IFUNCs cause initialization order disasters when statically linked because the resolver functions might run before the runtime architecture parsing engine is initialized. A compile-time/install-time static inline IFUNC entirely avoids this trap: if the final compiler backend doesn't explicitly confirm the execution target, it safely stamps out the generic default fallback block, maintaining safety over blind guessing.
+
+
